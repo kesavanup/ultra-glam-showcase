@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import heroImg from "@/assets/hero.jpg";
+import heroVideo from "@/assets/hero.mp4.asset.json";
 import workBanner from "@/assets/work-banner.jpg";
 import workPamphlet from "@/assets/work-pamphlet.jpg";
 import workLogo from "@/assets/work-logo.jpg";
