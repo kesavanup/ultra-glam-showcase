@@ -215,11 +215,15 @@ function Hero() {
   return (
     <section id="top" ref={wrap} className="relative h-[100svh] w-full overflow-hidden grain">
       <div ref={img} className="absolute inset-0 will-change-transform">
-        <img
-          src={heroImg}
-          alt="Cinematic gold liquid on black — Black Pixal hero"
-          width={1920}
-          height={1280}
+        <video
+          src={heroVideo.url}
+          poster={heroImg}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-label="Cinematic gold liquid on black — Black Pixal hero"
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black" />
