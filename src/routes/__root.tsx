@@ -92,6 +92,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "BLACK PIXAL — Creative Design & AI Studio" },
+      { name: "description", content: "A premium parallax portfolio website showcasing BLACK PIXAL's creative design and AI studio services." },
+      { property: "og:description", content: "A premium parallax portfolio website showcasing BLACK PIXAL's creative design and AI studio services." },
+      { name: "twitter:description", content: "A premium parallax portfolio website showcasing BLACK PIXAL's creative design and AI studio services." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ee7f6da8-b826-411a-9263-3faef09d11da/id-preview-47107943--266dfe93-b8a1-4a06-a1b5-df2a32f79620.lovable.app-1782311631395.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ee7f6da8-b826-411a-9263-3faef09d11da/id-preview-47107943--266dfe93-b8a1-4a06-a1b5-df2a32f79620.lovable.app-1782311631395.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
