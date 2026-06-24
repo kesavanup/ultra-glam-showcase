@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import heroImg from "@/assets/hero.jpg";
-import heroVideo from "@/assets/hero.mp4.asset.json";
 import workBanner from "@/assets/work-banner.jpg";
 import workPamphlet from "@/assets/work-pamphlet.jpg";
 import workLogo from "@/assets/work-logo.jpg";
@@ -13,6 +12,8 @@ import workRetouchBefore from "@/assets/work-retouch-before.jpg";
 import workAiVideo from "@/assets/work-aivideo.jpg";
 import workSocial from "@/assets/work-social.jpg";
 import workColor from "@/assets/work-color.jpg";
+
+const HeroScene = lazy(() => import("@/components/HeroScene"));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -215,19 +216,20 @@ function Hero() {
   return (
     <section id="top" ref={wrap} className="relative h-[100svh] w-full overflow-hidden grain">
       <div ref={img} className="absolute inset-0 will-change-transform">
-        <video
-          src={heroVideo.url}
-          poster={heroImg}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          aria-label="Cinematic gold liquid on black — Black Pixal hero"
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.7)_80%)]" />
+        <Suspense
+          fallback={
+            <img
+              src={heroImg}
+              alt=""
+              aria-hidden
+              className="h-full w-full object-cover"
+            />
+          }
+        >
+          <HeroScene />
+        </Suspense>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.55)_85%)]" />
       </div>
 
       <div className="relative z-10 mx-auto flex h-full max-w-[1400px] flex-col justify-between px-6 pb-16 pt-32 md:px-12 md:pt-40">
