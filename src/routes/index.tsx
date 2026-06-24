@@ -320,7 +320,7 @@ function Services() {
   }, []);
 
   return (
-    <section id="services" ref={root} className="relative px-6 py-28 md:px-12 md:py-40">
+    <section id="services" ref={root} className="relative bg-background/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="01" label="Services" />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
@@ -472,7 +472,7 @@ function BeforeAfter() {
   }, []);
 
   return (
-    <section className="relative px-6 py-28 md:px-12 md:py-40">
+    <section className="relative bg-background/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="03" label="Before / After" />
         <div className="mt-6 grid gap-10 md:grid-cols-[1fr_1fr] md:items-end">
@@ -629,7 +629,7 @@ function AiVideoShowcase() {
 function Testimonials() {
   const row = [...testimonials, ...testimonials];
   return (
-    <section className="relative px-0 py-28 md:py-40">
+    <section className="relative bg-background/80 backdrop-blur-md px-0 py-28 md:py-40">
       <div className="mx-auto max-w-[1400px] px-6 md:px-12">
         <SectionLabel num="05" label="Testimonials" />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
