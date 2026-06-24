@@ -130,20 +130,35 @@ const testimonials = [
 
 function Home() {
   return (
-    <main className="relative bg-background text-foreground">
-      <Nav />
-      <Hero />
-      <Marquee />
-      <Services />
-      <Portfolio />
-      <BeforeAfter />
-      <AiVideoShowcase />
-      <Testimonials />
-      <Contact />
-      <Footer />
-    </main>
+    <>
+      {/* Fixed WebGL background — persists through entire page scroll */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <Suspense
+          fallback={
+            <img src={heroImg} alt="" aria-hidden className="h-full w-full object-cover" />
+          }
+        >
+          <HeroScene />
+        </Suspense>
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.65)_85%)]" />
+      </div>
+
+      <main className="relative z-10 text-foreground">
+        <Nav />
+        <Hero />
+        <Marquee />
+        <Services />
+        <Portfolio />
+        <BeforeAfter />
+        <AiVideoShowcase />
+        <Testimonials />
+        <Contact />
+        <Footer />
+      </main>
+    </>
   );
 }
+
 
 function Nav() {
   return (
@@ -215,22 +230,10 @@ function Hero() {
   const headline = "BLACK PIXAL";
   return (
     <section id="top" ref={wrap} className="relative h-[100svh] w-full overflow-hidden grain">
-      <div ref={img} className="absolute inset-0 will-change-transform">
-        <Suspense
-          fallback={
-            <img
-              src={heroImg}
-              alt=""
-              aria-hidden
-              className="h-full w-full object-cover"
-            />
-          }
-        >
-          <HeroScene />
-        </Suspense>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.55)_85%)]" />
+      <div ref={img} className="pointer-events-none absolute inset-0 will-change-transform">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80" />
       </div>
+
 
       <div className="relative z-10 mx-auto flex h-full max-w-[1400px] flex-col justify-between px-6 pb-16 pt-32 md:px-12 md:pt-40">
         <div>
@@ -283,7 +286,7 @@ function Marquee() {
   ];
   const list = [...words, ...words, ...words];
   return (
-    <section aria-hidden className="border-y border-border/60 bg-ink py-6 overflow-hidden">
+    <section aria-hidden className="border-y border-border/60 bg-ink/80 backdrop-blur-md py-6 overflow-hidden">
       <div className="marquee flex gap-12 whitespace-nowrap">
         {list.map((w, i) => (
           <span
@@ -317,7 +320,7 @@ function Services() {
   }, []);
 
   return (
-    <section id="services" ref={root} className="relative px-6 py-28 md:px-12 md:py-40">
+    <section id="services" ref={root} className="relative bg-background/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="01" label="Services" />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
@@ -372,7 +375,7 @@ function Portfolio() {
   }, [filter]);
 
   return (
-    <section id="work" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
+    <section id="work" className="relative bg-ink/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
           <div>
@@ -469,7 +472,7 @@ function BeforeAfter() {
   }, []);
 
   return (
-    <section className="relative px-6 py-28 md:px-12 md:py-40">
+    <section className="relative bg-background/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="03" label="Before / After" />
         <div className="mt-6 grid gap-10 md:grid-cols-[1fr_1fr] md:items-end">
@@ -544,7 +547,7 @@ function AiVideoShowcase() {
     { title: "Onyx Ritual", duration: "00:32", img: workSocial },
   ];
   return (
-    <section id="films" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
+    <section id="films" className="relative bg-ink/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="04" label="AI Films" />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
@@ -626,7 +629,7 @@ function AiVideoShowcase() {
 function Testimonials() {
   const row = [...testimonials, ...testimonials];
   return (
-    <section className="relative px-0 py-28 md:py-40">
+    <section className="relative bg-background/80 backdrop-blur-md px-0 py-28 md:py-40">
       <div className="mx-auto max-w-[1400px] px-6 md:px-12">
         <SectionLabel num="05" label="Testimonials" />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
@@ -661,7 +664,7 @@ function Testimonials() {
 
 function Contact() {
   return (
-    <section id="contact" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
+    <section id="contact" className="relative bg-ink/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="06" label="Contact" />
         <h2 className="mt-6 max-w-4xl font-display text-6xl leading-[0.95] tracking-tight md:text-[9vw]">

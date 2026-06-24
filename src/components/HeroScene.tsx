@@ -31,17 +31,18 @@ function Logo() {
     <group ref={group}>
       {/* glowing rings, ActiveTheory-style orbit */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.85, 0.006, 16, 200]} />
+        <torusGeometry args={[1.25, 0.005, 16, 200]} />
         <meshBasicMaterial color="#f4d28a" transparent opacity={0.55} />
       </mesh>
       <mesh rotation={[Math.PI / 2.2, 0.4, 0]}>
-        <torusGeometry args={[2.15, 0.004, 16, 200]} />
+        <torusGeometry args={[1.5, 0.0035, 16, 200]} />
         <meshBasicMaterial color="#ffffff" transparent opacity={0.18} />
       </mesh>
 
       {/* logo plane */}
       <mesh ref={inner}>
-        <planeGeometry args={[2.4, 2.4]} />
+        <planeGeometry args={[1.5, 1.5]} />
+
         <meshStandardMaterial
           map={tex}
           transparent
