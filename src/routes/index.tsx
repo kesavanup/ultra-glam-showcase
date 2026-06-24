@@ -130,20 +130,35 @@ const testimonials = [
 
 function Home() {
   return (
-    <main className="relative bg-background text-foreground">
-      <Nav />
-      <Hero />
-      <Marquee />
-      <Services />
-      <Portfolio />
-      <BeforeAfter />
-      <AiVideoShowcase />
-      <Testimonials />
-      <Contact />
-      <Footer />
-    </main>
+    <>
+      {/* Fixed WebGL background — persists through entire page scroll */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <Suspense
+          fallback={
+            <img src={heroImg} alt="" aria-hidden className="h-full w-full object-cover" />
+          }
+        >
+          <HeroScene />
+        </Suspense>
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.65)_85%)]" />
+      </div>
+
+      <main className="relative z-10 text-foreground">
+        <Nav />
+        <Hero />
+        <Marquee />
+        <Services />
+        <Portfolio />
+        <BeforeAfter />
+        <AiVideoShowcase />
+        <Testimonials />
+        <Contact />
+        <Footer />
+      </main>
+    </>
   );
 }
+
 
 function Nav() {
   return (
