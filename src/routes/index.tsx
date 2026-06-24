@@ -286,7 +286,7 @@ function Marquee() {
   ];
   const list = [...words, ...words, ...words];
   return (
-    <section aria-hidden className="border-y border-border/60 bg-ink py-6 overflow-hidden">
+    <section aria-hidden className="border-y border-border/60 bg-ink/80 backdrop-blur-md py-6 overflow-hidden">
       <div className="marquee flex gap-12 whitespace-nowrap">
         {list.map((w, i) => (
           <span
@@ -375,7 +375,7 @@ function Portfolio() {
   }, [filter]);
 
   return (
-    <section id="work" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
+    <section id="work" className="relative bg-ink/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
           <div>
@@ -547,7 +547,7 @@ function AiVideoShowcase() {
     { title: "Onyx Ritual", duration: "00:32", img: workSocial },
   ];
   return (
-    <section id="films" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
+    <section id="films" className="relative bg-ink/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="04" label="AI Films" />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
@@ -664,7 +664,7 @@ function Testimonials() {
 
 function Contact() {
   return (
-    <section id="contact" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
+    <section id="contact" className="relative bg-ink/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="06" label="Contact" />
         <h2 className="mt-6 max-w-4xl font-display text-6xl leading-[0.95] tracking-tight md:text-[9vw]">
