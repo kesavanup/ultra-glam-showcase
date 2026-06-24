@@ -238,24 +238,7 @@ function Hero() {
         </div>
 
         <div>
-          <h1
-            ref={title}
-            className="font-display text-[18vw] leading-[0.85] tracking-[-0.04em] md:text-[14vw]"
-            aria-label={headline}
-          >
-            <span className="block overflow-hidden">
-              {headline.split("").map((c, i) => (
-                <span key={i} className="inline-block overflow-hidden">
-                  <span
-                    data-char
-                    className="inline-block gold-text gold-glow"
-                  >
-                    {c === " " ? "\u00A0" : c}
-                  </span>
-                </span>
-              ))}
-            </span>
-          </h1>
+          <h1 ref={title} className="sr-only" aria-label={headline}>{headline}</h1>
           <div className="mt-6 grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
             <p className="max-w-xl text-balance text-sm leading-relaxed text-foreground/70 md:text-base">
               An editorial studio for brands that refuse the ordinary.
