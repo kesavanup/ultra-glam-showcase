@@ -230,22 +230,10 @@ function Hero() {
   const headline = "BLACK PIXAL";
   return (
     <section id="top" ref={wrap} className="relative h-[100svh] w-full overflow-hidden grain">
-      <div ref={img} className="absolute inset-0 will-change-transform">
-        <Suspense
-          fallback={
-            <img
-              src={heroImg}
-              alt=""
-              aria-hidden
-              className="h-full w-full object-cover"
-            />
-          }
-        >
-          <HeroScene />
-        </Suspense>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.55)_85%)]" />
+      <div ref={img} className="pointer-events-none absolute inset-0 will-change-transform">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80" />
       </div>
+
 
       <div className="relative z-10 mx-auto flex h-full max-w-[1400px] flex-col justify-between px-6 pb-16 pt-32 md:px-12 md:pt-40">
         <div>
