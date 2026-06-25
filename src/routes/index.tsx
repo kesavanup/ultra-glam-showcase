@@ -129,10 +129,38 @@ const testimonials = [
 ];
 
 function Home() {
+  const bgRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!bgRef.current || !mainRef.current) return;
+    const ctx = gsap.context(() => {
+      // Smooth, page-long parallax + gentle scale/fade.
+      // High scrub value = inertial easing so motion stays calm and readable.
+      gsap.fromTo(
+        bgRef.current,
+        { scale: 1, yPercent: 0, opacity: 1 },
+        {
+          scale: 1.08,
+          yPercent: -6,
+          opacity: 0.55,
+          ease: "sine.inOut",
+          scrollTrigger: {
+            trigger: mainRef.current,
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 1.6,
+          },
+        },
+      );
+    });
+    return () => ctx.revert();
+  }, []);
+
   return (
     <>
       {/* Fixed WebGL background — persists through entire page scroll */}
-      <div className="pointer-events-none fixed inset-0 z-0">
+      <div ref={bgRef} className="pointer-events-none fixed inset-0 z-0 will-change-transform">
         <Suspense
           fallback={
             <img src={heroImg} alt="" aria-hidden className="h-full w-full object-cover" />
@@ -143,7 +171,7 @@ function Home() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.65)_85%)]" />
       </div>
 
-      <main className="relative z-10 text-foreground">
+      <main ref={mainRef} className="relative z-10 text-foreground">
         <Nav />
         <Hero />
         <Marquee />
