@@ -192,9 +192,11 @@ function Nav() {
   return (
     <header className="fixed left-0 right-0 top-0 z-50 mix-blend-difference">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-6 md:px-12">
-        <a href="#top" className="flex items-center gap-2">
-          <span className="font-display text-xl tracking-[0.3em] text-white">BLACK</span>
-          <span className="font-display text-xl italic tracking-[0.2em] text-white">pixal</span>
+        <a href="#top" className="flex items-center gap-3">
+          <img src={logoOriginal} alt="Black Pixal" className="h-9 w-9 object-contain" />
+          <span className="font-display text-xl font-bold tracking-[0.25em] text-white">
+            BLACK PIXAL
+          </span>
         </a>
         <nav className="hidden gap-10 text-[11px] uppercase tracking-[0.3em] text-white md:flex">
           <a href="#services" className="hover:opacity-60">Services</a>
