@@ -28,10 +28,15 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-gold: var(--gold);
-  --color-gold-soft: var(--gold-soft);
-  --color-gold-deep: var(--gold-deep);
+  --color-chrome: var(--chrome);
+  --color-chrome-soft: var(--chrome-soft);
+  --color-chrome-deep: var(--chrome-deep);
+  --color-ice: var(--ice);
   --color-ink: var(--ink);
+  /* Legacy aliases (kept so existing `bg-gold` / `text-gold` classes keep working with the chrome palette) */
+  --color-gold: var(--chrome);
+  --color-gold-soft: var(--chrome-soft);
+  --color-gold-deep: var(--chrome-deep);
 
   --radius-sm: 2px;
   --radius-md: 4px;
