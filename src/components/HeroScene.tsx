@@ -1,11 +1,27 @@
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { EffectComposer, Bloom, Vignette, ChromaticAberration } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { TextureLoader } from "three";
 
 import logoMark from "@/assets/logo-mark.png";
+
+// Shared scroll progress (0 → 1) updated outside R3F so we can read it in useFrame.
+const scrollState = { progress: 0 };
+
+function useScrollProgress() {
+  useEffect(() => {
+    const onScroll = () => {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      scrollState.progress = max > 0 ? Math.min(1, Math.max(0, h.scrollTop / max)) : 0;
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+}
 
 function Logo() {
   const tex = useLoader(TextureLoader, logoMark);
@@ -15,21 +31,24 @@ function Logo() {
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
+    const p = scrollState.progress;
     if (group.current) {
       group.current.position.y = Math.sin(t * 0.5) * 0.08;
-      group.current.rotation.y = Math.sin(t * 0.35) * 0.35;
-      group.current.rotation.x = Math.sin(t * 0.25) * 0.08;
-    }
-    if (inner.current) {
-      // breathing emissive shimmer
-      const mat = inner.current.material as THREE.MeshStandardMaterial;
-      mat.emissiveIntensity = 0.35 + Math.sin(t * 1.2) * 0.15;
+      // Scroll multiplies rotation — full spin(s) as user scrolls down.
+      group.current.rotation.y = Math.sin(t * 0.35) * 0.35 + p * Math.PI * 4;
+      group.current.rotation.x = Math.sin(t * 0.25) * 0.08 + p * 0.6;
+      // Logo plane fades as pixels burst out.
+      const targetOpacity = 1 - p * 0.85;
+      if (inner.current) {
+        const mat = inner.current.material as THREE.MeshStandardMaterial;
+        mat.opacity = targetOpacity;
+        mat.emissiveIntensity = 0.35 + Math.sin(t * 1.2) * 0.15;
+      }
     }
   });
 
   return (
     <group ref={group}>
-      {/* glowing rings, ActiveTheory-style orbit */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[1.25, 0.005, 16, 200]} />
         <meshBasicMaterial color="#f4d28a" transparent opacity={0.55} />
@@ -39,14 +58,12 @@ function Logo() {
         <meshBasicMaterial color="#ffffff" transparent opacity={0.18} />
       </mesh>
 
-      {/* logo plane */}
       <mesh ref={inner}>
         <planeGeometry args={[1.5, 1.5]} />
-
         <meshStandardMaterial
           map={tex}
           transparent
-          alphaTest={0.05}
+          alphaTest={0.02}
           metalness={0.9}
           roughness={0.25}
           emissive={new THREE.Color("#f4d28a")}
@@ -55,7 +72,81 @@ function Logo() {
           side={THREE.DoubleSide}
         />
       </mesh>
+
+      <PixelBurst />
     </group>
+  );
+}
+
+// Grid of "pixels" sitting on the logo plane that explode outward as the user scrolls.
+function PixelBurst() {
+  const ref = useRef<THREE.Points>(null);
+  const GRID = 14; // 14x14 pixels
+  const count = GRID * GRID;
+
+  const { basePositions, directions } = useMemo(() => {
+    const base = new Float32Array(count * 3);
+    const dirs = new Float32Array(count * 3);
+    const size = 1.4;
+    let i = 0;
+    for (let y = 0; y < GRID; y++) {
+      for (let x = 0; x < GRID; x++) {
+        const px = (x / (GRID - 1) - 0.5) * size;
+        const py = (y / (GRID - 1) - 0.5) * size;
+        base[i * 3 + 0] = px;
+        base[i * 3 + 1] = py;
+        base[i * 3 + 2] = 0;
+        // Outward direction with a forward Z kick + jitter
+        const len = Math.hypot(px, py) || 0.001;
+        dirs[i * 3 + 0] = (px / len) * (1 + Math.random() * 0.8);
+        dirs[i * 3 + 1] = (py / len) * (1 + Math.random() * 0.8);
+        dirs[i * 3 + 2] = (Math.random() - 0.3) * 1.5;
+        i++;
+      }
+    }
+    return { basePositions: base, directions: dirs };
+  }, [count]);
+
+  const positions = useMemo(() => new Float32Array(basePositions), [basePositions]);
+
+  useFrame(() => {
+    if (!ref.current) return;
+    const p = scrollState.progress;
+    const burst = Math.pow(p, 1.4) * 4.5; // distance multiplier
+    const arr = (ref.current.geometry.attributes.position as THREE.BufferAttribute).array as Float32Array;
+    for (let i = 0; i < count; i++) {
+      arr[i * 3 + 0] = basePositions[i * 3 + 0] + directions[i * 3 + 0] * burst;
+      arr[i * 3 + 1] = basePositions[i * 3 + 1] + directions[i * 3 + 1] * burst;
+      arr[i * 3 + 2] = basePositions[i * 3 + 2] + directions[i * 3 + 2] * burst;
+    }
+    ref.current.geometry.attributes.position.needsUpdate = true;
+    const mat = ref.current.material as THREE.PointsMaterial;
+    // Start invisible (logo is whole), fade in as pixels separate.
+    mat.opacity = Math.min(1, p * 2.2);
+    mat.size = 0.05 + p * 0.06;
+  });
+
+  return (
+    <points ref={ref}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[positions, 3]}
+          count={count}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.05}
+        color="#f4d28a"
+        transparent
+        opacity={0}
+        sizeAttenuation
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
   );
 }
 
@@ -133,6 +224,11 @@ function CameraRig() {
   return null;
 }
 
+function ScrollTracker() {
+  useScrollProgress();
+  return null;
+}
+
 export default function HeroScene() {
   return (
     <Canvas
@@ -141,6 +237,7 @@ export default function HeroScene() {
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       style={{ width: "100%", height: "100%", display: "block" }}
     >
+      <ScrollTracker />
       <color attach="background" args={["#05060A"]} />
       <fog attach="fog" args={["#05060A", 6, 14]} />
 
