@@ -51,7 +51,7 @@ function Logo() {
     <group ref={group}>
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[1.25, 0.005, 16, 200]} />
-        <meshBasicMaterial color="#f4d28a" transparent opacity={0.55} />
+        <meshBasicMaterial color="#cfe0ff" transparent opacity={0.55} />
       </mesh>
       <mesh rotation={[Math.PI / 2.2, 0.4, 0]}>
         <torusGeometry args={[1.5, 0.0035, 16, 200]} />
@@ -66,7 +66,7 @@ function Logo() {
           alphaTest={0.02}
           metalness={0.9}
           roughness={0.25}
-          emissive={new THREE.Color("#f4d28a")}
+          emissive={new THREE.Color("#cfe0ff")}
           emissiveMap={tex}
           emissiveIntensity={0.4}
           side={THREE.DoubleSide}
@@ -139,7 +139,7 @@ function PixelBurst() {
       </bufferGeometry>
       <pointsMaterial
         size={0.05}
-        color="#f4d28a"
+        color="#cfe0ff"
         transparent
         opacity={0}
         sizeAttenuation
@@ -238,17 +238,17 @@ export default function HeroScene() {
       style={{ width: "100%", height: "100%", display: "block" }}
     >
       <ScrollTracker />
-      <color attach="background" args={["#05060A"]} />
-      <fog attach="fog" args={["#05060A", 6, 14]} />
+      <color attach="background" args={["#0a0a0f"]} />
+      <fog attach="fog" args={["#0a0a0f", 6, 14]} />
 
       <ambientLight intensity={0.25} />
-      <directionalLight position={[3, 4, 5]} intensity={1.1} color="#f4d28a" />
-      <pointLight position={[-4, -2, 3]} intensity={0.6} color="#8aa9ff" />
+      <directionalLight position={[3, 4, 5]} intensity={1.1} color="#cfe0ff" />
+      <pointLight position={[-4, -2, 3]} intensity={0.6} color="#5d7ea8" />
 
       <Logo />
 
-      <Particles count={900} spread={14} size={0.025} speed={0.25} color="#f4d28a" />
-      <Particles count={350} spread={20} size={0.05} speed={0.12} color="#9bb6ff" />
+      <Particles count={900} spread={14} size={0.025} speed={0.25} color="#cfe0ff" />
+      <Particles count={350} spread={20} size={0.05} speed={0.12} color="#8a9bb4" />
       <Particles count={120} spread={8} size={0.08} speed={0.45} color="#ffffff" />
 
       <CameraRig />
