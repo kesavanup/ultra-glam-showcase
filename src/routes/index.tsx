@@ -14,6 +14,8 @@ import workAiVideo from "@/assets/work-aivideo.jpg";
 import workSocial from "@/assets/work-social.jpg";
 import workColor from "@/assets/work-color.jpg";
 
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+
 const HeroScene = lazy(() => import("@/components/HeroScene"));
 
 gsap.registerPlugin(ScrollTrigger);
@@ -191,26 +193,29 @@ function Home() {
 
 function Nav() {
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 mix-blend-difference">
+    <header className="fixed left-0 right-0 top-0 z-50">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-6 md:px-12">
-        <a href="#top" className="flex items-center gap-3">
+        <a href="#top" className="flex items-center gap-3 mix-blend-difference">
           <img src={logoOriginal} alt="Black Pixal" className="h-9 w-9 object-contain" />
           <span className="font-display text-xl font-bold tracking-[0.25em] text-white">
             BLACK PIXAL
           </span>
         </a>
-        <nav className="hidden gap-10 text-[11px] uppercase tracking-[0.3em] text-white md:flex">
+        <nav className="hidden gap-10 text-[11px] uppercase tracking-[0.3em] text-white md:flex mix-blend-difference">
           <a href="#services" className="hover:opacity-60">Services</a>
           <a href="#work" className="hover:opacity-60">Work</a>
           <a href="#films" className="hover:opacity-60">Films</a>
           <a href="#contact" className="hover:opacity-60">Contact</a>
         </nav>
-        <a
-          href="#contact"
-          className="rounded-full border border-white/40 px-4 py-2 text-[11px] uppercase tracking-[0.25em] text-white transition hover:bg-white hover:text-black"
-        >
-          Get Quote
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href="#contact"
+            className="hidden rounded-full border border-white/40 px-4 py-2 text-[11px] uppercase tracking-[0.25em] text-white transition hover:bg-white hover:text-black sm:inline-flex mix-blend-difference"
+          >
+            Get Quote
+          </a>
+          <ThemeSwitcher />
+        </div>
       </div>
     </header>
   );
@@ -474,7 +479,7 @@ function Portfolio() {
 function BeforeAfter() {
   const [pos, setPos] = useState(50);
   const wrap = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
+  const activePointer = useRef<number | null>(null);
 
   const update = (clientX: number) => {
     if (!wrap.current) return;
@@ -483,24 +488,26 @@ function BeforeAfter() {
     setPos(Math.max(0, Math.min(100, p)));
   };
 
-  useEffect(() => {
-    const move = (e: MouseEvent | TouchEvent) => {
-      if (!dragging.current) return;
-      const x = "touches" in e ? e.touches[0].clientX : e.clientX;
-      update(x);
-    };
-    const up = () => (dragging.current = false);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
-    window.addEventListener("touchmove", move);
-    window.addEventListener("touchend", up);
-    return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
-      window.removeEventListener("touchmove", move);
-      window.removeEventListener("touchend", up);
-    };
-  }, []);
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    activePointer.current = e.pointerId;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    update(e.clientX);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointer.current !== e.pointerId) return;
+    e.preventDefault();
+    update(e.clientX);
+  };
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointer.current !== e.pointerId) return;
+    activePointer.current = null;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowLeft") setPos((p) => Math.max(0, p - 4));
+    if (e.key === "ArrowRight") setPos((p) => Math.min(100, p + 4));
+  };
 
   return (
     <section className="relative bg-background/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
@@ -511,56 +518,63 @@ function BeforeAfter() {
             Retouching, <em className="gold-text">undone</em>.
           </h2>
           <p className="max-w-md text-sm leading-relaxed text-foreground/60">
-            Drag the slider to compare an untouched capture with a Black Pixal
-            high-end retouch. Skin texture is preserved — never plasticised.
+            Drag the slider — or tap anywhere on the image — to compare an
+            untouched capture with a Black Pixal high-end retouch. Skin texture
+            is preserved, never plasticised.
           </p>
         </div>
 
         <div
           ref={wrap}
-          className="ring-gold relative mt-12 aspect-[4/5] max-h-[80vh] w-full select-none overflow-hidden rounded-sm md:aspect-[16/9]"
-          onMouseDown={(e) => {
-            dragging.current = true;
-            update(e.clientX);
-          }}
-          onTouchStart={(e) => {
-            dragging.current = true;
-            update(e.touches[0].clientX);
-          }}
+          role="slider"
+          tabIndex={0}
+          aria-label="Before and after comparison"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(pos)}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onKeyDown={onKeyDown}
+          className="ring-gold relative mt-12 aspect-[4/5] max-h-[80vh] w-full cursor-ew-resize touch-none select-none overflow-hidden rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-gold md:aspect-[16/9]"
+          style={{ WebkitUserSelect: "none" }}
         >
           <img
             src={workRetouchAfter}
             alt="After retouching"
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover"
+            draggable={false}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
           <div
-            className="absolute inset-0 overflow-hidden"
+            className="pointer-events-none absolute inset-0 overflow-hidden"
             style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
           >
             <img
               src={workRetouchBefore}
               alt="Before retouching"
               loading="lazy"
+              draggable={false}
               className="absolute inset-0 h-full w-full object-cover"
             />
           </div>
 
           {/* Labels */}
-          <span className="absolute left-4 top-4 rounded-full border border-white/40 bg-black/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-white backdrop-blur">
+          <span className="pointer-events-none absolute left-4 top-4 rounded-full border border-white/40 bg-black/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-white backdrop-blur">
             Before
           </span>
-          <span className="absolute right-4 top-4 rounded-full border border-gold/60 bg-black/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-gold backdrop-blur">
+          <span className="pointer-events-none absolute right-4 top-4 rounded-full border border-gold/60 bg-black/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-gold backdrop-blur">
             After
           </span>
 
           {/* Divider */}
           <div
-            className="pointer-events-none absolute inset-y-0"
+            className="pointer-events-none absolute inset-y-0 will-change-transform"
             style={{ left: `${pos}%`, transform: "translateX(-50%)" }}
           >
-            <div className="h-full w-px bg-gold shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
-            <div className="absolute top-1/2 left-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-gold bg-black/60 backdrop-blur">
+            <div className="h-full w-px bg-gold shadow-[0_0_20px_var(--glow-color)]" />
+            <div className="absolute top-1/2 left-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-gold bg-black/70 backdrop-blur transition-transform duration-200 group-active:scale-95">
               <span className="font-mono text-xs text-gold">⇆</span>
             </div>
           </div>
@@ -708,23 +722,23 @@ function Contact() {
           <div className="grid gap-6 sm:grid-cols-3">
             <ContactCard
               label="WhatsApp"
-              value="+1 (555) 028-1124"
-              href="https://wa.me/15550281124"
+              value="+91 98406 60671"
+              href="https://wa.me/919840660671"
             />
             <ContactCard
               label="Instagram"
-              value="@blackpixal.studio"
-              href="https://instagram.com/blackpixal.studio"
+              value="@blackpixalstudio"
+              href="https://instagram.com/blackpixalstudio"
             />
             <ContactCard
               label="Email"
-              value="hello@blackpixal.co"
-              href="mailto:hello@blackpixal.co"
+              value="blackpixalstudio@gmail.com"
+              href="mailto:blackpixalstudio@gmail.com"
             />
           </div>
 
           <a
-            href="mailto:hello@blackpixal.co?subject=Project%20Quote"
+            href="mailto:blackpixalstudio@gmail.com?subject=Project%20Quote"
             className="group relative inline-flex items-center justify-center gap-3 self-start overflow-hidden rounded-full bg-gold px-10 py-5 font-mono text-[11px] uppercase tracking-[0.3em] text-ink transition hover:scale-[1.02]"
           >
             <span className="relative z-10">Get Quote</span>
