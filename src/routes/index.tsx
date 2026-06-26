@@ -193,26 +193,29 @@ function Home() {
 
 function Nav() {
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 mix-blend-difference">
+    <header className="fixed left-0 right-0 top-0 z-50">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-6 md:px-12">
-        <a href="#top" className="flex items-center gap-3">
+        <a href="#top" className="flex items-center gap-3 mix-blend-difference">
           <img src={logoOriginal} alt="Black Pixal" className="h-9 w-9 object-contain" />
           <span className="font-display text-xl font-bold tracking-[0.25em] text-white">
             BLACK PIXAL
           </span>
         </a>
-        <nav className="hidden gap-10 text-[11px] uppercase tracking-[0.3em] text-white md:flex">
+        <nav className="hidden gap-10 text-[11px] uppercase tracking-[0.3em] text-white md:flex mix-blend-difference">
           <a href="#services" className="hover:opacity-60">Services</a>
           <a href="#work" className="hover:opacity-60">Work</a>
           <a href="#films" className="hover:opacity-60">Films</a>
           <a href="#contact" className="hover:opacity-60">Contact</a>
         </nav>
-        <a
-          href="#contact"
-          className="rounded-full border border-white/40 px-4 py-2 text-[11px] uppercase tracking-[0.25em] text-white transition hover:bg-white hover:text-black"
-        >
-          Get Quote
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href="#contact"
+            className="hidden rounded-full border border-white/40 px-4 py-2 text-[11px] uppercase tracking-[0.25em] text-white transition hover:bg-white hover:text-black sm:inline-flex mix-blend-difference"
+          >
+            Get Quote
+          </a>
+          <ThemeSwitcher />
+        </div>
       </div>
     </header>
   );
