@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-display: "DM Serif Display", ui-serif, Georgia, serif;
-  --font-sans: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: var(--font-display-stack);
+  --font-sans: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -33,18 +33,23 @@
   --color-chrome-deep: var(--chrome-deep);
   --color-ice: var(--ice);
   --color-ink: var(--ink);
-  /* Legacy aliases (kept so existing `bg-gold` / `text-gold` classes keep working with the chrome palette) */
-  --color-gold: var(--chrome);
-  --color-gold-soft: var(--chrome-soft);
-  --color-gold-deep: var(--chrome-deep);
+  /* Legacy aliases — `gold` utilities map to the active theme's accent so theme
+     switching works without renaming classes across the app. */
+  --color-gold: var(--accent-color);
+  --color-gold-soft: var(--accent-soft);
+  --color-gold-deep: var(--accent-deep);
 
   --radius-sm: 2px;
   --radius-md: 4px;
   --radius-lg: 6px;
 }
 
+/* ---------- Default theme: Liquid Chrome ---------- */
 :root {
-  /* Liquid Chrome palette */
+  --font-display-stack: "DM Serif Display", ui-serif, Georgia, serif;
+  --font-sans-stack: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-stack: "JetBrains Mono", ui-monospace, monospace;
+
   --background: oklch(0.08 0.012 270);
   --foreground: oklch(0.96 0.015 250);
   --ink: oklch(0.16 0.025 260);
@@ -57,6 +62,10 @@
   --chrome-soft: oklch(0.88 0.025 245);
   --chrome-deep: oklch(0.55 0.04 255);
   --ice: oklch(0.96 0.025 240);
+
+  --accent-color: var(--chrome);
+  --accent-soft: var(--chrome-soft);
+  --accent-deep: var(--chrome-deep);
 
   --primary: var(--chrome);
   --primary-foreground: oklch(0.08 0.012 270);
@@ -72,6 +81,184 @@
   --input: oklch(0.2 0.025 265);
   --ring: var(--chrome);
   --radius: 0.25rem;
+
+  --gradient-text: linear-gradient(180deg, oklch(0.98 0.02 240) 0%, oklch(0.82 0.04 245) 40%, oklch(0.55 0.05 255) 100%);
+  --glow-color: oklch(0.85 0.05 245 / 0.5);
+}
+
+/* ---------- Mono: white / black / gray ---------- */
+[data-theme="mono"] {
+  --font-display-stack: "Archivo Black", ui-sans-serif, system-ui, sans-serif;
+  --font-sans-stack: "Inter", "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-stack: "JetBrains Mono", ui-monospace, monospace;
+
+  --background: oklch(0.98 0 0);
+  --foreground: oklch(0.12 0 0);
+  --ink: oklch(0.18 0 0);
+  --card: oklch(0.96 0 0);
+  --card-foreground: oklch(0.12 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.12 0 0);
+  --chrome: oklch(0.18 0 0);
+  --chrome-soft: oklch(0.5 0 0);
+  --chrome-deep: oklch(0.05 0 0);
+  --ice: oklch(0.96 0 0);
+  --accent-color: oklch(0.12 0 0);
+  --accent-soft: oklch(0.4 0 0);
+  --accent-deep: oklch(0.05 0 0);
+  --primary: oklch(0.12 0 0);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.92 0 0);
+  --secondary-foreground: oklch(0.12 0 0);
+  --muted: oklch(0.94 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+  --accent: oklch(0.12 0 0);
+  --accent-foreground: oklch(0.98 0 0);
+  --border: oklch(0.12 0 0 / 18%);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.12 0 0);
+  --gradient-text: linear-gradient(180deg, oklch(0.05 0 0) 0%, oklch(0.3 0 0) 100%);
+  --glow-color: oklch(0.12 0 0 / 0.25);
+}
+
+/* ---------- Glass: black + white + frosted gray ---------- */
+[data-theme="glass"] {
+  --font-display-stack: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans-stack: "DM Sans", "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-stack: "JetBrains Mono", ui-monospace, monospace;
+
+  --background: oklch(0.07 0.005 260);
+  --foreground: oklch(0.98 0 0);
+  --ink: oklch(0.14 0.005 260);
+  --card: oklch(0.18 0.005 260 / 60%);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.1 0.005 260);
+  --popover-foreground: oklch(0.98 0 0);
+  --chrome: oklch(0.98 0 0);
+  --chrome-soft: oklch(0.82 0.005 260);
+  --chrome-deep: oklch(0.55 0.01 260);
+  --ice: oklch(0.96 0 0);
+  --accent-color: oklch(0.98 0 0);
+  --accent-soft: oklch(0.82 0.005 260);
+  --accent-deep: oklch(0.5 0.01 260);
+  --primary: oklch(0.98 0 0);
+  --primary-foreground: oklch(0.07 0.005 260);
+  --secondary: oklch(0.22 0.005 260);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.2 0.005 260);
+  --muted-foreground: oklch(0.7 0.005 260);
+  --accent: oklch(0.98 0 0);
+  --accent-foreground: oklch(0.07 0.005 260);
+  --border: oklch(1 0 0 / 18%);
+  --input: oklch(0.22 0.005 260);
+  --ring: oklch(0.98 0 0);
+  --gradient-text: linear-gradient(180deg, oklch(1 0 0) 0%, oklch(0.78 0.005 260) 100%);
+  --glow-color: oklch(1 0 0 / 0.3);
+}
+
+/* ---------- Noir Gold: black + gold + white ---------- */
+[data-theme="noir-gold"] {
+  --font-display-stack: "DM Serif Display", ui-serif, Georgia, serif;
+  --font-sans-stack: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-stack: "JetBrains Mono", ui-monospace, monospace;
+
+  --background: oklch(0.07 0.005 70);
+  --foreground: oklch(0.97 0.015 80);
+  --ink: oklch(0.13 0.01 70);
+  --card: oklch(0.12 0.01 70);
+  --card-foreground: oklch(0.97 0.015 80);
+  --popover: oklch(0.09 0.005 70);
+  --popover-foreground: oklch(0.97 0.015 80);
+  --chrome: oklch(0.78 0.13 85);
+  --chrome-soft: oklch(0.88 0.1 88);
+  --chrome-deep: oklch(0.55 0.12 80);
+  --ice: oklch(0.97 0.02 80);
+  --accent-color: oklch(0.78 0.13 85);
+  --accent-soft: oklch(0.88 0.1 88);
+  --accent-deep: oklch(0.55 0.12 80);
+  --primary: oklch(0.78 0.13 85);
+  --primary-foreground: oklch(0.07 0.005 70);
+  --secondary: oklch(0.18 0.01 70);
+  --secondary-foreground: oklch(0.97 0.015 80);
+  --muted: oklch(0.16 0.01 70);
+  --muted-foreground: oklch(0.72 0.03 80);
+  --accent: oklch(0.78 0.13 85);
+  --accent-foreground: oklch(0.07 0.005 70);
+  --border: oklch(0.78 0.13 85 / 25%);
+  --input: oklch(0.18 0.01 70);
+  --ring: oklch(0.78 0.13 85);
+  --gradient-text: linear-gradient(180deg, oklch(0.96 0.04 88) 0%, oklch(0.78 0.13 85) 50%, oklch(0.5 0.12 78) 100%);
+  --glow-color: oklch(0.78 0.13 85 / 0.55);
+}
+
+/* ---------- Ivory Gold: white + gold + black ---------- */
+[data-theme="ivory-gold"] {
+  --font-display-stack: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans-stack: "Karla", "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-stack: "JetBrains Mono", ui-monospace, monospace;
+
+  --background: oklch(0.97 0.008 80);
+  --foreground: oklch(0.12 0.005 70);
+  --ink: oklch(0.92 0.012 80);
+  --card: oklch(0.99 0.005 80);
+  --card-foreground: oklch(0.12 0.005 70);
+  --popover: oklch(0.99 0.005 80);
+  --popover-foreground: oklch(0.12 0.005 70);
+  --chrome: oklch(0.6 0.13 80);
+  --chrome-soft: oklch(0.78 0.12 85);
+  --chrome-deep: oklch(0.4 0.1 75);
+  --ice: oklch(0.12 0.005 70);
+  --accent-color: oklch(0.6 0.13 80);
+  --accent-soft: oklch(0.78 0.12 85);
+  --accent-deep: oklch(0.4 0.1 75);
+  --primary: oklch(0.6 0.13 80);
+  --primary-foreground: oklch(0.97 0.008 80);
+  --secondary: oklch(0.92 0.01 80);
+  --secondary-foreground: oklch(0.12 0.005 70);
+  --muted: oklch(0.94 0.01 80);
+  --muted-foreground: oklch(0.4 0.01 70);
+  --accent: oklch(0.6 0.13 80);
+  --accent-foreground: oklch(0.97 0.008 80);
+  --border: oklch(0.6 0.13 80 / 30%);
+  --input: oklch(0.92 0.01 80);
+  --ring: oklch(0.6 0.13 80);
+  --gradient-text: linear-gradient(180deg, oklch(0.7 0.14 82) 0%, oklch(0.55 0.13 78) 60%, oklch(0.3 0.06 70) 100%);
+  --glow-color: oklch(0.6 0.13 80 / 0.45);
+}
+
+/* ---------- Prism: multicolour vivid ---------- */
+[data-theme="prism"] {
+  --font-display-stack: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-sans-stack: "Plus Jakarta Sans", "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-stack: "JetBrains Mono", ui-monospace, monospace;
+
+  --background: oklch(0.09 0.04 290);
+  --foreground: oklch(0.97 0.02 300);
+  --ink: oklch(0.16 0.06 290);
+  --card: oklch(0.14 0.05 290);
+  --card-foreground: oklch(0.97 0.02 300);
+  --popover: oklch(0.1 0.04 290);
+  --popover-foreground: oklch(0.97 0.02 300);
+  --chrome: oklch(0.75 0.2 350);
+  --chrome-soft: oklch(0.82 0.18 220);
+  --chrome-deep: oklch(0.55 0.22 310);
+  --ice: oklch(0.95 0.05 200);
+  --accent-color: oklch(0.75 0.2 350);
+  --accent-soft: oklch(0.82 0.18 220);
+  --accent-deep: oklch(0.55 0.22 310);
+  --primary: oklch(0.75 0.2 350);
+  --primary-foreground: oklch(0.09 0.04 290);
+  --secondary: oklch(0.22 0.08 290);
+  --secondary-foreground: oklch(0.97 0.02 300);
+  --muted: oklch(0.2 0.06 290);
+  --muted-foreground: oklch(0.78 0.05 280);
+  --accent: oklch(0.82 0.18 220);
+  --accent-foreground: oklch(0.09 0.04 290);
+  --border: oklch(0.7 0.18 320 / 30%);
+  --input: oklch(0.22 0.08 290);
+  --ring: oklch(0.75 0.2 350);
+  --gradient-text: linear-gradient(120deg, #ff6b6b 0%, #f7931e 30%, #67e8f9 60%, #a78bfa 100%);
+  --glow-color: oklch(0.75 0.2 350 / 0.55);
 }
 
 @layer base {
@@ -92,8 +279,8 @@
     overflow-x: hidden;
   }
   ::selection {
-    background: var(--color-gold);
-    color: var(--color-ink);
+    background: var(--accent-color);
+    color: var(--background);
   }
 }
 
@@ -101,25 +288,9 @@
   .font-display { font-family: var(--font-display); }
   .font-mono { font-family: var(--font-mono); }
 
-  .gold-text {
-    background: linear-gradient(
-      180deg,
-      oklch(0.98 0.02 240) 0%,
-      oklch(0.82 0.04 245) 40%,
-      oklch(0.55 0.05 255) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
+  .gold-text,
   .chrome-text {
-    background: linear-gradient(
-      180deg,
-      oklch(0.98 0.02 240) 0%,
-      oklch(0.82 0.04 245) 40%,
-      oklch(0.55 0.05 255) 100%
-    );
+    background: var(--gradient-text);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -127,14 +298,14 @@
 
   .gold-glow {
     text-shadow:
-      0 0 20px oklch(0.85 0.05 245 / 0.5),
-      0 0 60px oklch(0.6 0.08 255 / 0.4);
+      0 0 20px var(--glow-color),
+      0 0 60px var(--glow-color);
   }
 
   .ring-gold {
     box-shadow:
-      0 0 0 1px oklch(0.85 0.05 245 / 0.3),
-      0 20px 60px -20px oklch(0.5 0.08 260 / 0.5);
+      0 0 0 1px var(--accent-color),
+      0 20px 60px -20px color-mix(in oklab, var(--accent-color) 40%, transparent);
   }
 
   .hover-glow {
@@ -144,9 +315,9 @@
   .hover-glow:hover {
     transform: translateY(-4px);
     box-shadow:
-      0 0 0 1px oklch(0.88 0.04 245 / 0.7),
-      0 30px 80px -20px oklch(0.5 0.08 260 / 0.6),
-      0 0 60px oklch(0.85 0.05 245 / 0.25);
+      0 0 0 1px color-mix(in oklab, var(--accent-color) 60%, transparent),
+      0 30px 80px -20px color-mix(in oklab, var(--accent-color) 50%, transparent),
+      0 0 60px var(--glow-color);
   }
 
   .grain::before {
