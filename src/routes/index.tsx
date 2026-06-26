@@ -722,23 +722,23 @@ function Contact() {
           <div className="grid gap-6 sm:grid-cols-3">
             <ContactCard
               label="WhatsApp"
-              value="+1 (555) 028-1124"
-              href="https://wa.me/15550281124"
+              value="+91 98406 60671"
+              href="https://wa.me/919840660671"
             />
             <ContactCard
               label="Instagram"
-              value="@blackpixal.studio"
-              href="https://instagram.com/blackpixal.studio"
+              value="@blackpixalstudio"
+              href="https://instagram.com/blackpixalstudio"
             />
             <ContactCard
               label="Email"
-              value="hello@blackpixal.co"
-              href="mailto:hello@blackpixal.co"
+              value="blackpixalstudio@gmail.com"
+              href="mailto:blackpixalstudio@gmail.com"
             />
           </div>
 
           <a
-            href="mailto:hello@blackpixal.co?subject=Project%20Quote"
+            href="mailto:blackpixalstudio@gmail.com?subject=Project%20Quote"
             className="group relative inline-flex items-center justify-center gap-3 self-start overflow-hidden rounded-full bg-gold px-10 py-5 font-mono text-[11px] uppercase tracking-[0.3em] text-ink transition hover:scale-[1.02]"
           >
             <span className="relative z-10">Get Quote</span>
