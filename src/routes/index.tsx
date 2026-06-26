@@ -176,9 +176,6 @@ function Home() {
 
       <main ref={mainRef} className="relative z-10 text-foreground">
         <Nav />
-        <div className="fixed right-4 top-4 z-[60] md:right-6 md:top-6">
-          <ThemeSwitcher />
-        </div>
         <Hero />
         <Marquee />
         <Services />
