@@ -479,7 +479,7 @@ function Portfolio() {
 function BeforeAfter() {
   const [pos, setPos] = useState(50);
   const wrap = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
+  const activePointer = useRef<number | null>(null);
 
   const update = (clientX: number) => {
     if (!wrap.current) return;
@@ -488,24 +488,26 @@ function BeforeAfter() {
     setPos(Math.max(0, Math.min(100, p)));
   };
 
-  useEffect(() => {
-    const move = (e: MouseEvent | TouchEvent) => {
-      if (!dragging.current) return;
-      const x = "touches" in e ? e.touches[0].clientX : e.clientX;
-      update(x);
-    };
-    const up = () => (dragging.current = false);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
-    window.addEventListener("touchmove", move);
-    window.addEventListener("touchend", up);
-    return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
-      window.removeEventListener("touchmove", move);
-      window.removeEventListener("touchend", up);
-    };
-  }, []);
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    activePointer.current = e.pointerId;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    update(e.clientX);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointer.current !== e.pointerId) return;
+    e.preventDefault();
+    update(e.clientX);
+  };
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointer.current !== e.pointerId) return;
+    activePointer.current = null;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowLeft") setPos((p) => Math.max(0, p - 4));
+    if (e.key === "ArrowRight") setPos((p) => Math.min(100, p + 4));
+  };
 
   return (
     <section className="relative bg-background/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
@@ -516,56 +518,63 @@ function BeforeAfter() {
             Retouching, <em className="gold-text">undone</em>.
           </h2>
           <p className="max-w-md text-sm leading-relaxed text-foreground/60">
-            Drag the slider to compare an untouched capture with a Black Pixal
-            high-end retouch. Skin texture is preserved — never plasticised.
+            Drag the slider — or tap anywhere on the image — to compare an
+            untouched capture with a Black Pixal high-end retouch. Skin texture
+            is preserved, never plasticised.
           </p>
         </div>
 
         <div
           ref={wrap}
-          className="ring-gold relative mt-12 aspect-[4/5] max-h-[80vh] w-full select-none overflow-hidden rounded-sm md:aspect-[16/9]"
-          onMouseDown={(e) => {
-            dragging.current = true;
-            update(e.clientX);
-          }}
-          onTouchStart={(e) => {
-            dragging.current = true;
-            update(e.touches[0].clientX);
-          }}
+          role="slider"
+          tabIndex={0}
+          aria-label="Before and after comparison"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(pos)}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onKeyDown={onKeyDown}
+          className="ring-gold relative mt-12 aspect-[4/5] max-h-[80vh] w-full cursor-ew-resize touch-none select-none overflow-hidden rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-gold md:aspect-[16/9]"
+          style={{ WebkitUserSelect: "none" }}
         >
           <img
             src={workRetouchAfter}
             alt="After retouching"
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover"
+            draggable={false}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
           <div
-            className="absolute inset-0 overflow-hidden"
+            className="pointer-events-none absolute inset-0 overflow-hidden"
             style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
           >
             <img
               src={workRetouchBefore}
               alt="Before retouching"
               loading="lazy"
+              draggable={false}
               className="absolute inset-0 h-full w-full object-cover"
             />
           </div>
 
           {/* Labels */}
-          <span className="absolute left-4 top-4 rounded-full border border-white/40 bg-black/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-white backdrop-blur">
+          <span className="pointer-events-none absolute left-4 top-4 rounded-full border border-white/40 bg-black/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-white backdrop-blur">
             Before
           </span>
-          <span className="absolute right-4 top-4 rounded-full border border-gold/60 bg-black/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-gold backdrop-blur">
+          <span className="pointer-events-none absolute right-4 top-4 rounded-full border border-gold/60 bg-black/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-gold backdrop-blur">
             After
           </span>
 
           {/* Divider */}
           <div
-            className="pointer-events-none absolute inset-y-0"
+            className="pointer-events-none absolute inset-y-0 will-change-transform"
             style={{ left: `${pos}%`, transform: "translateX(-50%)" }}
           >
-            <div className="h-full w-px bg-gold shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
-            <div className="absolute top-1/2 left-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-gold bg-black/60 backdrop-blur">
+            <div className="h-full w-px bg-gold shadow-[0_0_20px_var(--glow-color)]" />
+            <div className="absolute top-1/2 left-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-gold bg-black/70 backdrop-blur transition-transform duration-200 group-active:scale-95">
               <span className="font-mono text-xs text-gold">⇆</span>
             </div>
           </div>
