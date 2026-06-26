@@ -14,6 +14,8 @@ import workAiVideo from "@/assets/work-aivideo.jpg";
 import workSocial from "@/assets/work-social.jpg";
 import workColor from "@/assets/work-color.jpg";
 
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+
 const HeroScene = lazy(() => import("@/components/HeroScene"));
 
 gsap.registerPlugin(ScrollTrigger);
