@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { listPortfolio, type PortfolioItem } from "@/lib/portfolio.functions";
 
 import heroImg from "@/assets/hero.jpg";
 import logoOriginal from "@/assets/logo-original.png";
@@ -416,7 +419,7 @@ function Portfolio() {
     "Social Media Designs": "Social Media Ads",
   };
 
-  const cmsMapped = cmsItems.map((i) => ({
+  const cmsMapped = cmsItems.map((i: PortfolioItem) => ({
     title: i.title || i.category,
     cat: (CMS_TO_CAT[i.category] ?? "Banner") as Exclude<Category, "All">,
     img: i.thumbnail_url ?? i.media_url,
