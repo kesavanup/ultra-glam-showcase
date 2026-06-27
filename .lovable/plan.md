@@ -1,53 +1,75 @@
-## Goal
+## Plan: Admin Panel + Files Page + Neon Theme + Premium Hero Effects
 
-Replace the current hero `<video>` with a real-time **Three.js / WebGL** scene inspired by activetheory.net: a dark void with a floating metallic logo, ambient drifting particles, soft light streaks, and depth — the kind of motion you can't fake with an MP4. Logo and copy stay BLACK PIXAL as currently designed.
+Adds an admin gate, CMS-backed portfolio, a Files page with Google Drive uploads/downloads, a new Neon theme, and theme-aware particle effects — without altering the current layout, branding, animations, SEO, or deploy setup.
 
-## Visual reference (activetheory.net)
+### 1. Admin panel (shared password gate, no backend)
+- Add a small gear icon in the top-right (next to the existing theme switcher).
+- `/admin/login` route — password form, server-validated via `unlockAdmin` server function using `timingSafeEqual` against `ADMIN_PASSWORD` env var. Encrypted session cookie via `useSession` with `SESSION_SECRET`.
+- `/admin` dashboard route, gated server-side. Visitors see nothing admin-related.
+- Secrets needed (generated automatically):
+  - `ADMIN_PASSWORD` — you'll be prompted to enter it
+  - `SESSION_SECRET` — auto-generated 64-char random
+- Note: the gate uses a single shared password (your choice). It can't be tied to your Lovable account email without enabling Cloud auth.
 
-- Near-black background with subtle blue/violet vignette
-- Centered metallic 3D mark, slowly rotating + bobbing
-- Two layers of particles drifting at different depths (parallax)
-- Soft bloom + faint chromatic aberration glow
-- Cursor parallax (camera tilts slightly toward pointer)
-- Scroll-driven zoom-out / fade as you leave hero
+### 2. Portfolio CMS (Lovable Cloud)
+- Enable Lovable Cloud (database + storage bucket `portfolio`).
+- Table `portfolio_items`: id, category, title, description, media_url, media_type (image/video), thumbnail_url, sort_order, published, created_at. RLS: public SELECT where `published=true`; writes restricted to service role (called from admin-gated server fns).
+- Storage bucket `portfolio` (public read) for uploads.
+- Admin dashboard UI:
+  - Category tabs (Retouch, Logo, Banner, Pamphlet, Social Media, AI Images, AI Videos, Color Correction, Branding, + add custom).
+  - Drag-drop + browse upload, replace, delete, inline edit title/description/category, thumbnail change, drag-to-reorder (dnd-kit), preview, publish toggle.
+- Public portfolio grid on the homepage reads from `portfolio_items` (replacing current hardcoded array) — layout/animations unchanged.
 
-## Logo treatment
+### 3. `/files` page (Google Drive connector)
+- Link Google Drive connector (developer account — your Drive).
+- Server fns calling the connector gateway:
+  - `uploadToDrive` → multipart upload into a configured folder.
+  - `listDriveFiles` → metadata (name, size, modifiedTime, mimeType, id) from a public-downloads folder.
+  - `downloadDriveFile` → streamed via server route `/api/drive/download/$id`.
+- UI:
+  - **Upload section**: drag-drop + browse, multi-file, per-file progress, success/error toasts.
+  - **Download section**: search, category filter (folder-based), file name/size/date, download button, file-type icons.
+- Two Drive folder IDs stored as env vars: `DRIVE_UPLOAD_FOLDER_ID`, `DRIVE_DOWNLOAD_FOLDER_ID` (you'll provide after connecting).
 
-Use the user-uploaded mark (`Screenshot_2026-06-24_at_7.50.27_PM.png`):
+### 4. Themes
+- Keep all 5 existing themes. Add **Neon (Cyber Neon)**: bg `#0a0014`, neon cyan `#00f0ff`, magenta `#ff00d4`, violet `#b400ff`, font pair Orbitron + Rajdhani.
+- New `<ThemeFX />` component renders theme-specific canvas/particle layers behind content:
+  - **Prism (multi-color)**: animated gradient mesh + flowing colored particles + ink splash on click.
+  - **Noir Gold / Ivory Gold**: fine gold dust particles, shimmer streaks, glowing rim lighting.
+  - **Neon**: bloom-glow particles, light-trail lines, cursor neon trail.
+  - **Mono / Glass**: subtle existing look preserved (no heavy effects, kept minimal).
+- Mobile: reduces particle counts ~60% and disables trails for FPS.
 
-- Invert colors so the **frame becomes white**, the inner square + checker pattern become **white on transparent** (black areas of source → white; white areas → transparent). This gives a clean monochrome silhouette that reads on the dark scene and matches the activetheory monochrome-metallic vibe.
-- Save the inverted PNG as `src/assets/logo-mark.png` via `imagegen--edit_image` (transparent background).
-- Use it as a transparent texture on a `PlaneGeometry`, then add a subtle **gold rim light** so it still ties to the existing BLACK PIXAL palette (one accent, not the activetheory cyan).
+### 5. Hero enhancement
+- Extend existing `HeroScene.tsx`:
+  - Theme-aware particle colors (read CSS vars).
+  - Logo reveal: scale/blur intro on first mount.
+  - Mouse-responsive particle flow field (already partial — strengthen).
+  - Scroll-triggered burst variants per theme (gold dust / neon trails / color explosion).
+- No layout changes; pure additions inside the existing fixed canvas.
 
-## Tech approach
+### 6. Performance
+- Lazy-load admin routes and ThemeFX layers via `React.lazy` + `Suspense`.
+- `prefers-reduced-motion` disables heavy particles.
+- Image upload pipeline stores original + uses CSS `loading="lazy"` everywhere.
+- Cap DPR at 1.75; throttle particle counts on small viewports.
 
-- Add deps: `three`, `@react-three/fiber`, `@react-three/drei`, `@react-three/postprocessing`, `postprocessing`.
-- New component `src/components/HeroScene.tsx` (client-only) — a `<Canvas>` with:
-  - `<color attach="background">` deep ink (#05060A)
-  - Logo plane with `MeshStandardMaterial` (transparent map + emissive gold) gently rotating on Y, bobbing on a sine
-  - Two `<Points>` particle systems (≈800 + 200) drifting upward at different speeds for parallax
-  - 1–2 thin glowing rings around the logo (à la activetheory orbit)
-  - `<EffectComposer>` with `Bloom` (intensity ~0.8) + `Vignette` + faint `ChromaticAberration`
-  - Cursor-driven `useFrame` lerp on camera position (±0.3 units)
-- Lazy-load HeroScene with `React.lazy` + `Suspense` so it never runs during SSR (avoids `window`/WebGL crash). Fallback = current `hero.jpg` poster, so first paint stays instant.
-- Scroll behavior via existing GSAP ScrollTrigger: fade the canvas opacity 1 → 0 and scale 1 → 1.1 over the hero's height (keeps the parallax title overlay already in place).
-- Remove the `<video>` tag and `heroVideo` import. Keep `hero.jpg` strictly as Suspense fallback / `<noscript>` poster.
+### 7. Preservation guarantees
+- No changes to existing routes besides additive ones (`/admin`, `/admin/login`, `/files`).
+- Homepage sections, copy, contact info, existing animations untouched.
+- SEO `head()` metadata preserved; new routes get their own metadata.
+- Repo structure and Vercel/GitHub deploy unaffected.
 
-## Files touched
+### Technical summary
+- Stack: TanStack Start (existing) + Lovable Cloud (Supabase) + Google Drive connector + dnd-kit for reorder.
+- New files: `src/routes/admin.login.tsx`, `src/routes/admin.tsx`, `src/routes/admin.index.tsx`, `src/routes/files.tsx`, `src/routes/api/drive.download.$id.ts`, `src/lib/admin.functions.ts`, `src/lib/portfolio.functions.ts`, `src/lib/drive.functions.ts`, `src/components/AdminButton.tsx`, `src/components/ThemeFX.tsx`, `src/components/admin/*`.
+- Migrations: `portfolio_items` table + GRANTs + RLS + storage bucket `portfolio`.
+- Secrets requested in order: enable Cloud → `ADMIN_PASSWORD` (you enter) → `SESSION_SECRET` (auto) → connect Google Drive → `DRIVE_UPLOAD_FOLDER_ID` + `DRIVE_DOWNLOAD_FOLDER_ID`.
 
-- `src/assets/logo-mark.png` — new (inverted, transparent)
-- `src/components/HeroScene.tsx` — new (R3F scene + effects)
-- `src/routes/index.tsx` — swap `<video>` block for `<Suspense><HeroScene/></Suspense>` and drop hero video import
-- `package.json` / `bun.lock` — add three + r3f + drei + postprocessing
-
-## Out of scope (call out honestly)
-
-This will be a **high-quality approximation**, not a 1:1 clone. activetheory.net ships custom GLSL shaders, baked HDR cubemaps, mesh-line trails, fluid sims, and DOF — months of bespoke shader work. The plan above captures the *feel* (metallic mark, particles, bloom, parallax, cursor reactivity, scroll fade) within what's reasonable to build in one pass. If you want to go further afterwards (custom shaders, fluid trails, audio-reactive), we can layer that on.
-
-## Acceptance
-
-- Hero shows a live WebGL canvas, not an MP4
-- Inverted white logo floats centered with slow rotation + bob
-- Particles drift, bloom glows, cursor tilts camera
-- Page scroll fades canvas out smoothly
-- Mobile: scene still renders (lower DPR + fewer particles); falls back to poster image if WebGL unavailable
+### Build order
+1. Enable Cloud + portfolio table/bucket; migrate hardcoded items into DB.
+2. Admin gate + dashboard + portfolio CRUD UI.
+3. Connect Google Drive + `/files` page.
+4. Neon theme + `ThemeFX` particle layers.
+5. Hero theme-aware enhancements.
+6. Verify mobile FPS + lazy loading.
