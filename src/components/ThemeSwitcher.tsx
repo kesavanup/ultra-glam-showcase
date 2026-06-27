@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type ThemeId = "chrome" | "mono" | "glass" | "noir-gold" | "ivory-gold" | "prism";
+export type ThemeId = "chrome" | "mono" | "glass" | "noir-gold" | "ivory-gold" | "prism" | "neon";
 
 export const themes: { id: ThemeId; name: string; swatch: string[] }[] = [
   { id: "chrome", name: "Liquid Chrome", swatch: ["#0a0a0f", "#cfe0ff", "#8a9bb4"] },
@@ -9,15 +9,18 @@ export const themes: { id: ThemeId; name: string; swatch: string[] }[] = [
   { id: "noir-gold", name: "Noir Gold", swatch: ["#0d0d0d", "#c9a84c", "#f5f0e0"] },
   { id: "ivory-gold", name: "Ivory Gold", swatch: ["#faf8f3", "#c9a84c", "#0d0d0d"] },
   { id: "prism", name: "Prism", swatch: ["#0b0220", "#ff6b6b", "#67e8f9", "#a78bfa"] },
+  { id: "neon", name: "Cyber Neon", swatch: ["#0a0014", "#00f0ff", "#ff00d4", "#b400ff"] },
 ];
 
 const STORAGE_KEY = "bp-theme";
+const EVT = "bp-theme-change";
 
 export function applyTheme(id: ThemeId) {
   document.documentElement.dataset.theme = id;
   try {
     localStorage.setItem(STORAGE_KEY, id);
   } catch {}
+  window.dispatchEvent(new CustomEvent(EVT, { detail: id }));
 }
 
 export function getInitialTheme(): ThemeId {
@@ -27,6 +30,17 @@ export function getInitialTheme(): ThemeId {
     if (stored && themes.some((t) => t.id === stored)) return stored;
   } catch {}
   return "chrome";
+}
+
+export function useActiveTheme(): ThemeId {
+  const [active, setActive] = useState<ThemeId>("chrome");
+  useEffect(() => {
+    setActive(getInitialTheme());
+    const onChange = (e: Event) => setActive((e as CustomEvent<ThemeId>).detail);
+    window.addEventListener(EVT, onChange);
+    return () => window.removeEventListener(EVT, onChange);
+  }, []);
+  return active;
 }
 
 export function ThemeSwitcher() {

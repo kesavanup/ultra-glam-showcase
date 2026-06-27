@@ -226,6 +226,41 @@
   --glow-color: oklch(0.6 0.13 80 / 0.45);
 }
 
+/* ---------- Neon: Cyber Neon ---------- */
+[data-theme="neon"] {
+  --font-display-stack: "Orbitron", ui-sans-serif, system-ui, sans-serif;
+  --font-sans-stack: "Rajdhani", "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-stack: "JetBrains Mono", ui-monospace, monospace;
+
+  --background: oklch(0.08 0.06 300);
+  --foreground: oklch(0.97 0.02 200);
+  --ink: oklch(0.14 0.08 300);
+  --card: oklch(0.12 0.08 300 / 75%);
+  --card-foreground: oklch(0.97 0.02 200);
+  --popover: oklch(0.1 0.06 300);
+  --popover-foreground: oklch(0.97 0.02 200);
+  --chrome: oklch(0.82 0.22 200);
+  --chrome-soft: oklch(0.78 0.25 330);
+  --chrome-deep: oklch(0.55 0.28 300);
+  --ice: oklch(0.95 0.05 200);
+  --accent-color: oklch(0.82 0.22 200);
+  --accent-soft: oklch(0.78 0.25 330);
+  --accent-deep: oklch(0.6 0.28 300);
+  --primary: oklch(0.82 0.22 200);
+  --primary-foreground: oklch(0.08 0.06 300);
+  --secondary: oklch(0.2 0.08 300);
+  --secondary-foreground: oklch(0.97 0.02 200);
+  --muted: oklch(0.18 0.06 300);
+  --muted-foreground: oklch(0.78 0.05 240);
+  --accent: oklch(0.78 0.25 330);
+  --accent-foreground: oklch(0.08 0.06 300);
+  --border: oklch(0.82 0.22 200 / 30%);
+  --input: oklch(0.2 0.08 300);
+  --ring: oklch(0.82 0.22 200);
+  --gradient-text: linear-gradient(120deg, #00f0ff 0%, #b400ff 50%, #ff00d4 100%);
+  --glow-color: oklch(0.82 0.22 200 / 0.65);
+}
+
 /* ---------- Prism: multicolour vivid ---------- */
 [data-theme="prism"] {
   --font-display-stack: "Syne", ui-sans-serif, system-ui, sans-serif;

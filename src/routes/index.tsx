@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { listPortfolio, type PortfolioItem } from "@/lib/portfolio.functions";
 
 import heroImg from "@/assets/hero.jpg";
 import logoOriginal from "@/assets/logo-original.png";
@@ -15,6 +18,7 @@ import workSocial from "@/assets/work-social.jpg";
 import workColor from "@/assets/work-color.jpg";
 
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { AdminButton } from "@/components/AdminButton";
 
 const HeroScene = lazy(() => import("@/components/HeroScene"));
 
@@ -215,6 +219,7 @@ function Nav() {
             Get Quote
           </a>
           <ThemeSwitcher />
+          <AdminButton />
         </div>
       </div>
     </header>
@@ -395,7 +400,38 @@ function Services() {
 function Portfolio() {
   const [filter, setFilter] = useState<Category>("All");
   const root = useRef<HTMLDivElement>(null);
-  const items = portfolio.filter((p) => filter === "All" || p.cat === filter);
+  const listPortfolioFn = useServerFn(listPortfolio);
+  const { data: cmsItems = [] } = useQuery({
+    queryKey: ["public-portfolio"],
+    queryFn: () => listPortfolioFn(),
+    staleTime: 60_000,
+  });
+
+  const CMS_TO_CAT: Record<string, Exclude<Category, "All">> = {
+    "Banner Design": "Banner",
+    "Pamphlet Design": "Pamphlet",
+    "Logo Design": "Logo",
+    "Branding Projects": "Logo",
+    "High-End Retouch": "Retouching",
+    "Color Correction": "Retouching",
+    "AI Generated Videos": "AI Video",
+    "AI Generated Images": "AI Video",
+    "Social Media Designs": "Social Media Ads",
+  };
+
+  const cmsMapped = cmsItems.map((i: PortfolioItem) => ({
+    title: i.title || i.category,
+    cat: (CMS_TO_CAT[i.category] ?? "Banner") as Exclude<Category, "All">,
+    img: i.thumbnail_url ?? i.media_url,
+    isVideo: i.media_type === "video",
+    src: i.media_url,
+  }));
+
+  const allItems = [
+    ...cmsMapped,
+    ...portfolio.map((p) => ({ ...p, isVideo: false, src: p.img })),
+  ];
+  const items = allItems.filter((p) => filter === "All" || p.cat === filter);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -408,7 +444,7 @@ function Portfolio() {
       });
     }, root);
     return () => ctx.revert();
-  }, [filter]);
+  }, [filter, cmsItems.length]);
 
   return (
     <section id="work" className="relative bg-ink/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
@@ -448,12 +484,23 @@ function Portfolio() {
               data-work
               className="hover-glow group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-sm bg-background"
             >
-              <img
-                src={p.img}
-                alt={p.title}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-              />
+              {p.isVideo ? (
+                <video
+                  src={p.src}
+                  muted
+                  loop
+                  playsInline
+                  autoPlay
+                  className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                />
+              ) : (
+                <img
+                  src={p.img}
+                  alt={p.title}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent opacity-90 transition-opacity duration-500" />
               <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6">
                 <div>
