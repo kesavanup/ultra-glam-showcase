@@ -15,6 +15,7 @@ import workSocial from "@/assets/work-social.jpg";
 import workColor from "@/assets/work-color.jpg";
 
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { AdminButton } from "@/components/AdminButton";
 
 const HeroScene = lazy(() => import("@/components/HeroScene"));
 
@@ -215,6 +216,7 @@ function Nav() {
             Get Quote
           </a>
           <ThemeSwitcher />
+          <AdminButton />
         </div>
       </div>
     </header>
