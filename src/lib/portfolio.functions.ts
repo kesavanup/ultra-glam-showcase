@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertAdminEmail } from "./admin-auth";
 
 export type PortfolioItem = {
   id: string;
@@ -20,7 +22,6 @@ async function admin() {
 }
 
 async function signMedia(item: any): Promise<PortfolioItem> {
-  // media_url stored as `storage:<path>` for bucket files; pass-through for external URLs.
   const sb = await admin();
   const signOne = async (raw: string | null): Promise<string | null> => {
     if (!raw) return null;
@@ -48,27 +49,28 @@ export const listPortfolio = createServerFn({ method: "GET" }).handler(async () 
   return Promise.all((data ?? []).map(signMedia));
 });
 
-export const listAllPortfolio = createServerFn({ method: "GET" }).handler(async () => {
-  const { requireAdmin } = await import("./admin.session");
-  await requireAdmin();
-  const sb = await admin();
-  const { data, error } = await sb
-    .from("portfolio_items")
-    .select("*")
-    .order("category", { ascending: true })
-    .order("sort_order", { ascending: true });
-  if (error) throw error;
-  return Promise.all((data ?? []).map(signMedia));
-});
+export const listAllPortfolio = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    assertAdminEmail(context.claims as any);
+    const sb = await admin();
+    const { data, error } = await sb
+      .from("portfolio_items")
+      .select("*")
+      .order("category", { ascending: true })
+      .order("sort_order", { ascending: true });
+    if (error) throw error;
+    return Promise.all((data ?? []).map(signMedia));
+  });
 
 export const uploadPortfolioMedia = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: FormData) => {
     if (!(d instanceof FormData)) throw new Error("FormData required");
     return d;
   })
-  .handler(async ({ data }) => {
-    const { requireAdmin } = await import("./admin.session");
-    await requireAdmin();
+  .handler(async ({ data, context }) => {
+    assertAdminEmail(context.claims as any);
     const file = data.get("file") as File | null;
     if (!file) throw new Error("No file");
     const sb = await admin();
@@ -84,10 +86,10 @@ export const uploadPortfolioMedia = createServerFn({ method: "POST" })
   });
 
 export const upsertPortfolio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: Partial<PortfolioItem> & { id?: string }) => d)
-  .handler(async ({ data }) => {
-    const { requireAdmin } = await import("./admin.session");
-    await requireAdmin();
+  .handler(async ({ data, context }) => {
+    assertAdminEmail(context.claims as any);
     const sb = await admin();
     const payload: any = {
       category: data.category,
@@ -110,10 +112,10 @@ export const upsertPortfolio = createServerFn({ method: "POST" })
   });
 
 export const deletePortfolio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => d)
-  .handler(async ({ data }) => {
-    const { requireAdmin } = await import("./admin.session");
-    await requireAdmin();
+  .handler(async ({ data, context }) => {
+    assertAdminEmail(context.claims as any);
     const sb = await admin();
     const { error } = await sb.from("portfolio_items").delete().eq("id", data.id);
     if (error) throw error;
@@ -121,10 +123,10 @@ export const deletePortfolio = createServerFn({ method: "POST" })
   });
 
 export const reorderPortfolio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { items: { id: string; sort_order: number }[] }) => d)
-  .handler(async ({ data }) => {
-    const { requireAdmin } = await import("./admin.session");
-    await requireAdmin();
+  .handler(async ({ data, context }) => {
+    assertAdminEmail(context.claims as any);
     const sb = await admin();
     await Promise.all(
       data.items.map((i) =>
