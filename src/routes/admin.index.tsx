@@ -105,7 +105,7 @@ function AdminDashboard() {
             <Link to="/" className="rounded-md border border-border px-3 py-2 text-xs uppercase tracking-[0.25em] hover:bg-card">View site</Link>
             <button
               onClick={async () => {
-                await lock();
+                await supabase.auth.signOut();
                 await router.navigate({ to: "/admin/login" });
               }}
               className="rounded-md border border-border px-3 py-2 text-xs uppercase tracking-[0.25em] hover:bg-card"
