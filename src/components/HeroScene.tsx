@@ -1,6 +1,5 @@
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { EffectComposer, Bloom, Vignette, ChromaticAberration } from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
+import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { TextureLoader } from "three";
@@ -230,11 +229,17 @@ function ScrollTracker() {
 }
 
 export default function HeroScene() {
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const reduce =
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
   return (
     <Canvas
-      dpr={[1, 1.75]}
+      dpr={isMobile ? [1, 1.25] : [1, 1.5]}
       camera={{ position: [0, 0, 5], fov: 50 }}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      gl={{ antialias: !isMobile, alpha: true, powerPreference: "high-performance" }}
+      frameloop={reduce ? "demand" : "always"}
       style={{ width: "100%", height: "100%", display: "block" }}
     >
       <ScrollTracker />
@@ -243,26 +248,32 @@ export default function HeroScene() {
 
       <ambientLight intensity={0.25} />
       <directionalLight position={[3, 4, 5]} intensity={1.1} color="#cfe0ff" />
-      <pointLight position={[-4, -2, 3]} intensity={0.6} color="#5d7ea8" />
+      {!isMobile && <pointLight position={[-4, -2, 3]} intensity={0.6} color="#5d7ea8" />}
 
       <Logo />
 
-      <Particles count={900} spread={14} size={0.025} speed={0.25} color="#cfe0ff" />
-      <Particles count={350} spread={20} size={0.05} speed={0.12} color="#8a9bb4" />
-      <Particles count={120} spread={8} size={0.08} speed={0.45} color="#ffffff" />
+      <Particles
+        count={isMobile ? 220 : 700}
+        spread={14}
+        size={0.025}
+        speed={0.25}
+        color="#cfe0ff"
+      />
+      {!isMobile && (
+        <>
+          <Particles count={300} spread={20} size={0.05} speed={0.12} color="#8a9bb4" />
+          <Particles count={100} spread={8} size={0.08} speed={0.45} color="#ffffff" />
+        </>
+      )}
 
-      <CameraRig />
+      {!isMobile && <CameraRig />}
 
-      <EffectComposer>
-        <Bloom intensity={0.9} luminanceThreshold={0.15} luminanceSmoothing={0.4} mipmapBlur />
-        <ChromaticAberration
-          offset={new THREE.Vector2(0.0008, 0.0008)}
-          blendFunction={BlendFunction.NORMAL}
-          radialModulation={false}
-          modulationOffset={0}
-        />
-        <Vignette eskil={false} offset={0.2} darkness={0.85} />
-      </EffectComposer>
+      {!isMobile && (
+        <EffectComposer>
+          <Bloom intensity={0.7} luminanceThreshold={0.2} luminanceSmoothing={0.4} mipmapBlur />
+          <Vignette eskil={false} offset={0.2} darkness={0.85} />
+        </EffectComposer>
+      )}
     </Canvas>
   );
 }

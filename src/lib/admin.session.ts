@@ -11,7 +11,8 @@ export const adminSessionConfig = {
   cookie: {
     httpOnly: true,
     secure: true,
-    sameSite: "lax" as const,
+    // "none" so the cookie is accepted inside the Lovable preview iframe (cross-site context).
+    sameSite: "none" as const,
     path: "/",
   },
 };

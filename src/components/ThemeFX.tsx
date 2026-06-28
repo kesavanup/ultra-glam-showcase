@@ -34,8 +34,10 @@ export default function ThemeFX() {
 
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const mobile = window.innerWidth < 768;
+    // Skip the canvas overlay entirely on mobile — the 3D hero already taxes the GPU.
+    if (mobile) return;
     const pal = PALETTES[theme] ?? PALETTES.chrome;
-    const target = Math.round((reduce ? 0 : pal.count) * (mobile ? 0.45 : 1));
+    const target = reduce ? 0 : pal.count;
 
     let w = (canvas.width = window.innerWidth * devicePixelRatio);
     let h = (canvas.height = window.innerHeight * devicePixelRatio);
