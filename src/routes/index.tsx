@@ -253,9 +253,9 @@ function Hero() {
         ease: "none",
         scrollTrigger: { trigger: wrap.current, start: "top top", end: "bottom top", scrub: true },
       });
-      // Letter reveal
+      // Letter reveal (skip if no char spans exist — headline is sr-only)
       const chars = title.current?.querySelectorAll<HTMLSpanElement>("[data-char]");
-      if (chars) {
+      if (chars && chars.length > 0) {
         gsap.from(chars, {
           yPercent: 110,
           duration: 1.4,
