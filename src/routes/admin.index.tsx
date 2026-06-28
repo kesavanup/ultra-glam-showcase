@@ -37,7 +37,7 @@ function AdminDashboard() {
   const remove = useServerFn(deletePortfolio);
   const upload = useServerFn(uploadPortfolioMedia);
   const reorder = useServerFn(reorderPortfolio);
-  const lock = useServerFn(lockAdmin);
+  
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["admin-portfolio"],
