@@ -10,7 +10,7 @@ import {
   reorderPortfolio,
   type PortfolioItem,
 } from "@/lib/portfolio.functions";
-import { lockAdmin } from "@/lib/admin.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 const CATEGORIES = [
   "High-End Retouch",
