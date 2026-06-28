@@ -10,7 +10,7 @@ import {
   reorderPortfolio,
   type PortfolioItem,
 } from "@/lib/portfolio.functions";
-import { lockAdmin } from "@/lib/admin.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 const CATEGORIES = [
   "High-End Retouch",
@@ -37,7 +37,7 @@ function AdminDashboard() {
   const remove = useServerFn(deletePortfolio);
   const upload = useServerFn(uploadPortfolioMedia);
   const reorder = useServerFn(reorderPortfolio);
-  const lock = useServerFn(lockAdmin);
+  
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["admin-portfolio"],
@@ -105,7 +105,7 @@ function AdminDashboard() {
             <Link to="/" className="rounded-md border border-border px-3 py-2 text-xs uppercase tracking-[0.25em] hover:bg-card">View site</Link>
             <button
               onClick={async () => {
-                await lock();
+                await supabase.auth.signOut();
                 await router.navigate({ to: "/admin/login" });
               }}
               className="rounded-md border border-border px-3 py-2 text-xs uppercase tracking-[0.25em] hover:bg-card"
