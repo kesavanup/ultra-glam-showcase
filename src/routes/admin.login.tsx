@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+
 
 const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL ?? "dot3up@gmail.com").toLowerCase();
 
@@ -38,26 +38,18 @@ function AdminLogin() {
   async function signInGoogle() {
     setBusy(true);
     setErr(null);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/admin/login",
-      extraParams: { prompt: "select_account", login_hint: ADMIN_EMAIL },
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/admin/login",
+        queryParams: { prompt: "select_account", login_hint: ADMIN_EMAIL },
+      },
     });
-    if ((result as any)?.error) {
-      setErr((result as any).error.message ?? "Sign-in failed");
+    if (error) {
+      setErr(error.message ?? "Sign-in failed");
       setBusy(false);
-      return;
     }
-    if ((result as any)?.redirected) return; // browser is leaving
-    // Tokens already set — verify and route.
-    const { data } = await supabase.auth.getUser();
-    const email = data.user?.email?.toLowerCase();
-    setBusy(false);
-    if (email === ADMIN_EMAIL) {
-      router.navigate({ to: "/admin" });
-    } else {
-      await supabase.auth.signOut();
-      setErr("This Google account is not authorized.");
-    }
+    // Browser will redirect to Google; on return the useEffect above verifies and routes.
   }
 
   async function signOut() {
