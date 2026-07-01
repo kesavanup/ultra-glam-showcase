@@ -21,13 +21,21 @@ async function admin() {
   return supabaseAdmin;
 }
 
-async function signMedia(item: any): Promise<PortfolioItem> {
-  const sb = await admin();
+async function publicClient() {
+  const { createClient } = await import("@supabase/supabase-js");
+  const url = process.env.SUPABASE_URL!;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
+  return createClient(url, key, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
+
+async function signMediaWith(sb: any, item: any): Promise<PortfolioItem> {
   const signOne = async (raw: string | null): Promise<string | null> => {
     if (!raw) return null;
     if (!raw.startsWith("storage:")) return raw;
     const path = raw.slice("storage:".length);
-    const { data } = await sb.storage.from("portfolio").createSignedUrl(path, 60 * 60 * 24 * 365);
+    const { data } = await sb.storage.from("portfolio").createSignedUrl(path, 60 * 60 * 24 * 7);
     return data?.signedUrl ?? null;
   };
   return {
@@ -38,7 +46,7 @@ async function signMedia(item: any): Promise<PortfolioItem> {
 }
 
 export const listPortfolio = createServerFn({ method: "GET" }).handler(async () => {
-  const sb = await admin();
+  const sb = await publicClient();
   const { data, error } = await sb
     .from("portfolio_items")
     .select("*")
@@ -46,8 +54,9 @@ export const listPortfolio = createServerFn({ method: "GET" }).handler(async () 
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return Promise.all((data ?? []).map(signMedia));
+  return Promise.all((data ?? []).map((row: any) => signMediaWith(sb, row)));
 });
+
 
 export const listAllPortfolio = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
