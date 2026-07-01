@@ -39,7 +39,7 @@ async function signMediaWith(sb: any, item: any): Promise<PortfolioItem> {
     return data?.signedUrl ?? null;
   };
   return {
-    ...item,
+    ...(item as PortfolioItem),
     media_url: (await signOne(item.media_url)) ?? "",
     thumbnail_url: await signOne(item.thumbnail_url),
   };
