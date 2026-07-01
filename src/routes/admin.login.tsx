@@ -1,6 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { resetAdminPassword } from "@/lib/admin-reset.functions";
 
 const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL ?? "dot3up@gmail.com").toLowerCase();
 
@@ -52,10 +53,17 @@ function AdminLogin() {
     }
     if (password.length < 8) { setErr("Password must be at least 8 characters."); return; }
     setBusy(true); setErr(null); setInfo(null);
-    const { error } = await supabase.auth.signUp({ email: email.trim().toLowerCase(), password });
-    setBusy(false);
-    if (error) { setErr(error.message); return; }
-    setInfo("Account created. You can now sign in.");
+    try {
+      const res = await resetAdminPassword({ data: { password } });
+      setInfo(res.created ? "Account created. Signing in…" : "Password set. Signing in…");
+      const { error } = await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
+      if (error) { setErr(error.message); setBusy(false); return; }
+      await router.navigate({ to: "/admin" });
+    } catch (e: any) {
+      setErr(e?.message ?? "Failed to set password");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -101,7 +109,7 @@ function AdminLogin() {
           disabled={busy}
           className="w-full rounded-md border border-border px-4 py-2 text-[11px] uppercase tracking-[0.25em] hover:bg-background disabled:opacity-40"
         >
-          First time? Create admin account
+          First time or forgot password? Set / reset password
         </button>
 
         {err && <p className="text-xs text-destructive">{err}</p>}
