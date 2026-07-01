@@ -69,7 +69,7 @@ export const listAllPortfolio = createServerFn({ method: "GET" })
       .order("category", { ascending: true })
       .order("sort_order", { ascending: true });
     if (error) throw error;
-    return Promise.all((data ?? []).map(signMedia));
+    return Promise.all((data ?? []).map((row: any) => signMediaWith(sb, row)));
   });
 
 export const uploadPortfolioMedia = createServerFn({ method: "POST" })
