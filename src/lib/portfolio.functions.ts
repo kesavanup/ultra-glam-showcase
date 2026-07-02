@@ -31,12 +31,15 @@ async function publicClient() {
 }
 
 async function signMediaWith(sb: any, item: any): Promise<PortfolioItem> {
+  const version = encodeURIComponent(item.updated_at ?? item.created_at ?? String(Date.now()));
+  const bust = (u: string | null): string | null =>
+    u ? u + (u.includes("?") ? "&" : "?") + "v=" + version : null;
   const signOne = async (raw: string | null): Promise<string | null> => {
     if (!raw) return null;
-    if (!raw.startsWith("storage:")) return raw;
+    if (!raw.startsWith("storage:")) return bust(raw);
     const path = raw.slice("storage:".length);
     const { data } = await sb.storage.from("portfolio").createSignedUrl(path, 60 * 60 * 24 * 7);
-    return data?.signedUrl ?? null;
+    return bust(data?.signedUrl ?? null);
   };
   return {
     ...(item as PortfolioItem),
