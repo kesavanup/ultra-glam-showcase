@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as ApiDriveDownloadIdRouteImport } from './routes/api/drive.download.$id'
 
 const FilesRoute = FilesRouteImport.update({
@@ -41,6 +42,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAiRoute = AdminAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ApiDriveDownloadIdRoute = ApiDriveDownloadIdRouteImport.update({
   id: '/api/drive/download/$id',
   path: '/api/drive/download/$id',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/files': typeof FilesRoute
+  '/admin/ai': typeof AdminAiRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
   '/api/drive/download/$id': typeof ApiDriveDownloadIdRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/files': typeof FilesRoute
+  '/admin/ai': typeof AdminAiRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin': typeof AdminIndexRoute
   '/api/drive/download/$id': typeof ApiDriveDownloadIdRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/files': typeof FilesRoute
+  '/admin/ai': typeof AdminAiRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
   '/api/drive/download/$id': typeof ApiDriveDownloadIdRoute
@@ -77,16 +86,24 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/files'
+    | '/admin/ai'
     | '/admin/login'
     | '/admin/'
     | '/api/drive/download/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/files' | '/admin/login' | '/admin' | '/api/drive/download/$id'
+  to:
+    | '/'
+    | '/files'
+    | '/admin/ai'
+    | '/admin/login'
+    | '/admin'
+    | '/api/drive/download/$id'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/files'
+    | '/admin/ai'
     | '/admin/login'
     | '/admin/'
     | '/api/drive/download/$id'
@@ -136,6 +153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/ai': {
+      id: '/admin/ai'
+      path: '/ai'
+      fullPath: '/admin/ai'
+      preLoaderRoute: typeof AdminAiRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/api/drive/download/$id': {
       id: '/api/drive/download/$id'
       path: '/api/drive/download/$id'
@@ -147,11 +171,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAiRoute: typeof AdminAiRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAiRoute: AdminAiRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
