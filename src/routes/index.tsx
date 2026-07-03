@@ -305,6 +305,88 @@ function Hero() {
   );
 }
 
+function UnderConstruction() {
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const chars = root.current?.querySelectorAll<HTMLSpanElement>("[data-uc-char]");
+      if (chars && chars.length) {
+        gsap.from(chars, {
+          yPercent: 120,
+          opacity: 0,
+          rotateX: -60,
+          duration: 1.2,
+          ease: "expo.out",
+          stagger: 0.03,
+          delay: 0.3,
+        });
+      }
+      gsap.from(root.current?.querySelectorAll("[data-uc-line]") ?? [], {
+        opacity: 0,
+        y: 20,
+        duration: 1,
+        ease: "power3.out",
+        stagger: 0.15,
+        delay: 0.6,
+      });
+      gsap.to(root.current?.querySelector("[data-uc-shimmer]") ?? {}, {
+        backgroundPositionX: "200%",
+        duration: 6,
+        ease: "none",
+        repeat: -1,
+      });
+    }, root);
+    return () => ctx.revert();
+  }, []);
+
+  const title = "WEBSITE UNDER CONSTRUCTION";
+  return (
+    <div ref={root} className="mt-2 select-none">
+      <div data-uc-line className="mb-4 flex items-center gap-3">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
+        </span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-gold/90">
+          in progress — building something extraordinary
+        </span>
+      </div>
+
+      <h2
+        aria-label={title}
+        className="font-serif text-[clamp(2.2rem,7vw,5.5rem)] font-semibold leading-[0.95] tracking-tight text-foreground"
+      >
+        <span className="block overflow-hidden">
+          {"WEBSITE".split("").map((c, i) => (
+            <span key={`w-${i}`} data-uc-char className="inline-block">
+              {c === " " ? "\u00A0" : c}
+            </span>
+          ))}
+        </span>
+        <span
+          data-uc-shimmer
+          className="mt-1 block overflow-hidden bg-gradient-to-r from-gold via-foreground to-gold bg-[length:200%_100%] bg-clip-text italic text-transparent"
+          style={{ WebkitTextFillColor: "transparent" }}
+        >
+          {"UNDER CONSTRUCTION".split("").map((c, i) => (
+            <span key={`u-${i}`} data-uc-char className="inline-block">
+              {c === " " ? "\u00A0" : c}
+            </span>
+          ))}
+        </span>
+      </h2>
+
+      <p
+        data-uc-line
+        className="mt-4 max-w-xl text-sm italic text-foreground/60 md:text-base"
+      >
+        Crafting pixel by pixel — a cinematic experience is loading.
+        <span className="ml-2 font-mono not-italic text-gold/80">Stay tuned.</span>
+      </p>
+    </div>
+  );
+}
+
 function ScrollIndicator() {
   return (
     <div className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2">
