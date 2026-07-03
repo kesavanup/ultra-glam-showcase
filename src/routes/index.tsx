@@ -323,7 +323,7 @@ function UnderConstruction() {
 
       <h2
         aria-label={title}
-        className="font-serif text-[clamp(2.2rem,7vw,5.5rem)] font-semibold leading-[0.95] tracking-tight text-foreground"
+        className="font-serif text-[clamp(1.55rem,7.5vw,5.5rem)] font-semibold leading-[1] tracking-tight text-foreground break-words"
       >
         <span className="block overflow-hidden">
           {"WEBSITE".split("").map((c, i) => (
