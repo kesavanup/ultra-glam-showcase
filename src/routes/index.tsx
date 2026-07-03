@@ -285,7 +285,8 @@ function Hero() {
 
         <div>
           <h1 ref={title} className="sr-only" aria-label={headline}>{headline}</h1>
-          <div className="mt-6 grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
+          <UnderConstruction />
+          <div className="mt-8 grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
             <p className="max-w-xl text-balance text-sm leading-relaxed text-foreground/70 md:text-base">
               An editorial studio for brands that refuse the ordinary.
               We craft cinematic visuals, identity systems and AI-native films —
