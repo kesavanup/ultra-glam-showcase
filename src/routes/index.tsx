@@ -20,7 +20,7 @@ import workColor from "@/assets/work-color.jpg";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { AdminButton } from "@/components/AdminButton";
 
-const HeroScene = lazy(() => import("@/components/HeroScene"));
+import heroVideo from "@/assets/hero-construction.mp4.asset.json";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -136,61 +136,19 @@ const testimonials = [
 ];
 
 function Home() {
-  const bgRef = useRef<HTMLDivElement>(null);
-  const mainRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (!bgRef.current || !mainRef.current) return;
-    const ctx = gsap.context(() => {
-      // Smooth, page-long parallax + gentle scale/fade.
-      // High scrub value = inertial easing so motion stays calm and readable.
-      gsap.fromTo(
-        bgRef.current,
-        { scale: 1, yPercent: 0, opacity: 1 },
-        {
-          scale: 1.08,
-          yPercent: -6,
-          opacity: 0.55,
-          ease: "sine.inOut",
-          scrollTrigger: {
-            trigger: mainRef.current,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 1.6,
-          },
-        },
-      );
-    });
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <>
-      {/* Fixed WebGL background — persists through entire page scroll */}
-      <div ref={bgRef} className="pointer-events-none fixed inset-0 z-0 will-change-transform">
-        <Suspense
-          fallback={
-            <img src={heroImg} alt="" aria-hidden className="h-full w-full object-cover" />
-          }
-        >
-          <HeroScene />
-        </Suspense>
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.65)_85%)]" />
-      </div>
-
-      <main ref={mainRef} className="relative z-10 text-foreground">
-        <Nav />
-        <Hero />
-        <Marquee />
-        <Services />
-        <Portfolio />
-        <BeforeAfter />
-        <AiVideoShowcase />
-        <Testimonials />
-        <Contact />
-        <Footer />
-      </main>
-    </>
+    <main className="relative z-10 text-foreground">
+      <Nav />
+      <Hero />
+      <Marquee />
+      <Services />
+      <Portfolio />
+      <BeforeAfter />
+      <AiVideoShowcase />
+      <Testimonials />
+      <Contact />
+      <Footer />
+    </main>
   );
 }
 
@@ -270,13 +228,24 @@ function Hero() {
 
   const headline = "BLACK PIXAL";
   return (
-    <section id="top" ref={wrap} className="relative h-[100svh] w-full overflow-hidden grain">
+    <section id="top" ref={wrap} className="relative h-[100svh] w-full overflow-hidden grain bg-black">
+      {/* Cinematic MP4 background — replaces heavy WebGL for smooth performance */}
       <div ref={img} className="pointer-events-none absolute inset-0 will-change-transform">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80" />
+        <video
+          src={heroVideo.url}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster={heroImg}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/85" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.55)_85%)]" />
       </div>
 
-
-      <div className="relative z-10 mx-auto flex h-full max-w-[1400px] flex-col justify-between px-6 pb-16 pt-32 md:px-12 md:pt-40">
+      <div className="relative z-10 mx-auto flex h-full max-w-[1400px] flex-col justify-between px-6 pb-20 pt-28 md:px-12 md:pt-40">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-gold/80">
             est. 2024 — creative design & ai studio
@@ -286,7 +255,7 @@ function Hero() {
         <div>
           <h1 ref={title} className="sr-only" aria-label={headline}>{headline}</h1>
           <UnderConstruction />
-          <div className="mt-8 grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-[1fr_auto] md:items-end md:gap-8">
             <p className="max-w-xl text-balance text-sm leading-relaxed text-foreground/70 md:text-base">
               An editorial studio for brands that refuse the ordinary.
               We craft cinematic visuals, identity systems and AI-native films —
@@ -354,7 +323,7 @@ function UnderConstruction() {
 
       <h2
         aria-label={title}
-        className="font-serif text-[clamp(2.2rem,7vw,5.5rem)] font-semibold leading-[0.95] tracking-tight text-foreground"
+        className="font-serif text-[clamp(1.55rem,7.5vw,5.5rem)] font-semibold leading-[1] tracking-tight text-foreground break-words"
       >
         <span className="block overflow-hidden">
           {"WEBSITE".split("").map((c, i) => (
