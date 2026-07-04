@@ -6,6 +6,17 @@ import {
   aiEditAndPublish,
   uploadAndPublish,
 } from "@/lib/ai-media.functions";
+import { supabase } from "@/integrations/supabase/client";
+
+async function ensureFreshSession() {
+  const { data } = await supabase.auth.getSession();
+  const exp = data.session?.expires_at ?? 0;
+  const now = Math.floor(Date.now() / 1000);
+  // Refresh if missing, expired, or within 60s of expiry.
+  if (!data.session || exp - now < 60) {
+    await supabase.auth.refreshSession();
+  }
+}
 
 const CATEGORIES = [
   "High-End Retouch",
