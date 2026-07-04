@@ -6,6 +6,17 @@ import {
   aiEditAndPublish,
   uploadAndPublish,
 } from "@/lib/ai-media.functions";
+import { supabase } from "@/integrations/supabase/client";
+
+async function ensureFreshSession() {
+  const { data } = await supabase.auth.getSession();
+  const exp = data.session?.expires_at ?? 0;
+  const now = Math.floor(Date.now() / 1000);
+  // Refresh if missing, expired, or within 60s of expiry.
+  if (!data.session || exp - now < 60) {
+    await supabase.auth.refreshSession();
+  }
+}
 
 const CATEGORIES = [
   "High-End Retouch",
@@ -122,6 +133,7 @@ function GeneratePanel() {
 
   async function go() {
     setErr(null); setOk(null); setBusy(true);
+    try { await ensureFreshSession(); } catch {}
     try {
       await run({ data: { prompt, category, title, description } });
       setOk("Published to portfolio.");
@@ -189,6 +201,7 @@ function EditPanel() {
   async function go() {
     if (!file) return;
     setErr(null); setOk(null); setBusy(true);
+    try { await ensureFreshSession(); } catch {}
     try {
       const fd = new FormData();
       fd.append("file", file);
@@ -279,6 +292,7 @@ function UploadPanel() {
   async function go() {
     if (!file) return;
     setErr(null); setOk(null); setBusy(true);
+    try { await ensureFreshSession(); } catch {}
     try {
       const fd = new FormData();
       fd.append("file", file);
