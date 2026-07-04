@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "blackpixal-mcp",
+      "version": "0.1.0",
+      "title": "BLACK PIXAL Portfolio"
+    },
+    "tools": [
+      {
+        "name": "list_portfolio",
+        "title": "List portfolio items",
+        "description": "List published BLACK PIXAL portfolio items (title, description, category, media URL, type). Optionally filter by category.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "category": {
+              "description": "Optional category name to filter by, e.g. 'Logo Design'.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max items to return (default 50).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_categories",
+        "title": "List portfolio categories",
+        "description": "List distinct categories that currently have published portfolio items.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
