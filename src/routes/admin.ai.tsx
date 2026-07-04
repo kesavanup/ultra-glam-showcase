@@ -133,6 +133,7 @@ function GeneratePanel() {
 
   async function go() {
     setErr(null); setOk(null); setBusy(true);
+    try { await ensureFreshSession(); } catch {}
     try {
       await run({ data: { prompt, category, title, description } });
       setOk("Published to portfolio.");
@@ -200,6 +201,7 @@ function EditPanel() {
   async function go() {
     if (!file) return;
     setErr(null); setOk(null); setBusy(true);
+    try { await ensureFreshSession(); } catch {}
     try {
       const fd = new FormData();
       fd.append("file", file);
@@ -290,6 +292,7 @@ function UploadPanel() {
   async function go() {
     if (!file) return;
     setErr(null); setOk(null); setBusy(true);
+    try { await ensureFreshSession(); } catch {}
     try {
       const fd = new FormData();
       fd.append("file", file);
