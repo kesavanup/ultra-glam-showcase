@@ -288,6 +288,11 @@ function Hero() {
 }
 
 function UnderConstruction() {
+  const t = useSiteContent();
+  const line = t("hero_uc_line", "in progress — building something extraordinary");
+  const top = t("hero_uc_title_top", "WEBSITE");
+  const bottom = t("hero_uc_title_bottom", "UNDER CONSTRUCTION");
+  const tagline = t("hero_tagline", "Crafting pixel by pixel — a cinematic experience is loading.");
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -321,7 +326,7 @@ function UnderConstruction() {
     return () => ctx.revert();
   }, []);
 
-  const title = "WEBSITE UNDER CONSTRUCTION";
+  const title = `${top} ${bottom}`;
   return (
     <div ref={root} className="mt-2 select-none">
       <div data-uc-line className="mb-4 flex items-center gap-3">
@@ -330,7 +335,7 @@ function UnderConstruction() {
           <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
         </span>
         <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-gold/90">
-          in progress — building something extraordinary
+          {line}
         </span>
       </div>
 
@@ -339,7 +344,7 @@ function UnderConstruction() {
         className="font-serif text-[clamp(1.55rem,7.5vw,5.5rem)] font-semibold leading-[1] tracking-tight text-foreground break-words"
       >
         <span className="block overflow-hidden">
-          {"WEBSITE".split("").map((c, i) => (
+          {top.split("").map((c, i) => (
             <span key={`w-${i}`} data-uc-char className="inline-block">
               {c === " " ? "\u00A0" : c}
             </span>
@@ -350,7 +355,7 @@ function UnderConstruction() {
           className="mt-1 block overflow-hidden bg-gradient-to-r from-gold via-foreground to-gold bg-[length:200%_100%] bg-clip-text italic text-transparent"
           style={{ WebkitTextFillColor: "transparent" }}
         >
-          {"UNDER CONSTRUCTION".split("").map((c, i) => (
+          {bottom.split("").map((c, i) => (
             <span key={`u-${i}`} data-uc-char className="inline-block">
               {c === " " ? "\u00A0" : c}
             </span>
@@ -362,7 +367,7 @@ function UnderConstruction() {
         data-uc-line
         className="mt-4 max-w-xl text-sm italic text-foreground/60 md:text-base"
       >
-        Crafting pixel by pixel — a cinematic experience is loading.
+        {tagline}
         <span className="ml-2 font-mono not-italic text-gold/80">Stay tuned.</span>
       </p>
     </div>
