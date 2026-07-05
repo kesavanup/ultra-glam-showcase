@@ -75,6 +75,37 @@ async function callImageGateway(body: unknown): Promise<string> {
   return b64;
 }
 
+// Returns a base64 PNG without publishing. Client shows it as a preview
+// and then calls uploadAndPublish with the converted file if user confirms.
+export const aiPreview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: FormData) => {
+    if (!(d instanceof FormData)) throw new Error("FormData required");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    assertAdminEmail(context.claims as any);
+    const prompt = String(data.get("prompt") ?? "").trim();
+    if (!prompt) throw new Error("Prompt required");
+    const ref = data.get("reference") as File | null;
+
+    const content: any[] = [{ type: "text", text: prompt }];
+    if (ref && ref.size > 0) {
+      const buf = new Uint8Array(await ref.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+      const dataUrl = `data:${ref.type || "image/png"};base64,${btoa(bin)}`;
+      content.push({ type: "image_url", image_url: { url: dataUrl } });
+    }
+
+    const b64 = await callImageGateway({
+      model: "google/gemini-2.5-flash-image",
+      messages: [{ role: "user", content }],
+      modalities: ["image", "text"],
+    });
+    return { b64, contentType: "image/png" };
+  });
+
 export const aiGenerateAndPublish = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { prompt: string; category: string; title?: string; description?: string }) => {
