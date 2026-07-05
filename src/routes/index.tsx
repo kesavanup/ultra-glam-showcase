@@ -594,6 +594,9 @@ function Portfolio() {
 }
 
 function BeforeAfter() {
+  const t = useSiteContent();
+  const afterSrc = t("after_image_url", workRetouchAfter);
+  const beforeSrc = t("before_image_url", workRetouchBefore);
   const [pos, setPos] = useState(50);
   const wrap = useRef<HTMLDivElement>(null);
   const activePointer = useRef<number | null>(null);
@@ -658,7 +661,7 @@ function BeforeAfter() {
           style={{ WebkitUserSelect: "none" }}
         >
           <img
-            src={workRetouchAfter}
+            src={afterSrc}
             alt="After retouching"
             loading="lazy"
             draggable={false}
@@ -669,7 +672,7 @@ function BeforeAfter() {
             style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
           >
             <img
-              src={workRetouchBefore}
+              src={beforeSrc}
               alt="Before retouching"
               loading="lazy"
               draggable={false}
