@@ -199,6 +199,7 @@ function Nav() {
 }
 
 function Hero() {
+  const t = useSiteContent();
   const wrap = useRef<HTMLDivElement>(null);
   const img = useRef<HTMLDivElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
@@ -262,7 +263,7 @@ function Hero() {
       <div className="relative z-10 mx-auto flex h-full max-w-[1400px] flex-col justify-between px-6 pb-20 pt-28 md:px-12 md:pt-40">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-gold/80">
-            est. 2024 — creative design & ai studio
+            {t("hero_kicker", "est. 2024 — creative design & ai studio")}
           </p>
         </div>
 
@@ -271,9 +272,7 @@ function Hero() {
           <UnderConstruction />
           <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-[1fr_auto] md:items-end md:gap-8">
             <p className="max-w-xl text-balance text-sm leading-relaxed text-foreground/70 md:text-base">
-              An editorial studio for brands that refuse the ordinary.
-              We craft cinematic visuals, identity systems and AI-native films —
-              all in black and gold.
+              {t("hero_desc", "An editorial studio for brands that refuse the ordinary. We craft cinematic visuals, identity systems and AI-native films — all in black and gold.")}
             </p>
             <div className="hidden font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/50 md:block">
               <p>scroll</p>
