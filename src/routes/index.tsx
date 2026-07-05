@@ -5,6 +5,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { listPortfolio, type PortfolioItem } from "@/lib/portfolio.functions";
+import { listSiteContent } from "@/lib/site-content.functions";
 
 import heroImg from "@/assets/hero.jpg";
 import logoOriginal from "@/assets/logo-original.png";
