@@ -136,6 +136,19 @@ const testimonials = [
   },
 ];
 
+function useSiteContent() {
+  const fetchFn = useServerFn(listSiteContent);
+  const { data = {} } = useQuery({
+    queryKey: ["public-site-content"],
+    queryFn: () => fetchFn(),
+    staleTime: 30_000,
+  });
+  return (key: string, fallback: string) => {
+    const v = data[key];
+    return v && v.trim().length > 0 ? v : fallback;
+  };
+}
+
 function Home() {
   return (
     <main className="relative z-10 text-foreground">
