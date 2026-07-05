@@ -102,6 +102,7 @@ function AdminDashboard() {
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Manage live work</p>
           </div>
           <div className="flex gap-3">
+            <Link to="/admin/content" className="rounded-md border border-primary/60 bg-primary/10 px-3 py-2 text-xs font-medium uppercase tracking-[0.25em] text-primary hover:bg-primary/20">✎ Site Content</Link>
             <Link to="/admin/ai" className="rounded-md bg-primary px-3 py-2 text-xs font-medium uppercase tracking-[0.25em] text-primary-foreground hover:opacity-90">✨ AI Studio</Link>
             <Link to="/" className="rounded-md border border-border px-3 py-2 text-xs uppercase tracking-[0.25em] hover:bg-card">View site</Link>
             <button
