@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Service role write portfolio media" ON storage.objects;
