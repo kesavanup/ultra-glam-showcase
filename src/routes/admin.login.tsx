@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { resetAdminPassword } from "@/lib/admin-reset.functions";
 
-const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL ?? "dot3up@gmail.com").toLowerCase();
+// Optional client-side hint only. The authoritative admin email lives in the
+// server-only ADMIN_EMAIL env var (see src/lib/admin-auth.ts) and is never
+// shipped in the browser bundle.
+const ADMIN_EMAIL_HINT = (import.meta.env.VITE_ADMIN_EMAIL ?? "").toLowerCase().trim();
 
 export const Route = createFileRoute("/admin/login")({
   ssr: false,
@@ -18,7 +21,7 @@ export const Route = createFileRoute("/admin/login")({
 
 function AdminLogin() {
   const router = useRouter();
-  const [email, setEmail] = useState(ADMIN_EMAIL);
+  const [email, setEmail] = useState(ADMIN_EMAIL_HINT);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -27,8 +30,7 @@ function AdminLogin() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
-      const e = data.user?.email?.toLowerCase();
-      if (e === ADMIN_EMAIL) await router.navigate({ to: "/admin" });
+      if (data.user?.email) await router.navigate({ to: "/admin" });
     })();
   }, [router]);
 
@@ -38,25 +40,21 @@ function AdminLogin() {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
     setBusy(false);
     if (error) { setErr(error.message); return; }
-    if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
-      await supabase.auth.signOut();
-      setErr("This account is not authorized.");
-      return;
-    }
+    // Server enforces admin allowlist on every privileged call.
     await router.navigate({ to: "/admin" });
   }
 
   async function createAccount() {
-    if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
-      setErr(`Only ${ADMIN_EMAIL} can be created here.`);
-      return;
-    }
     if (password.length < 8) { setErr("Password must be at least 8 characters."); return; }
     setBusy(true); setErr(null); setInfo(null);
     try {
       const res = await resetAdminPassword({ data: { password } });
       setInfo(res.created ? "Account created. Signing in…" : "Password set. Signing in…");
-      const { error } = await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password });
+      // resetAdminPassword targets the server-side admin account.
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
       if (error) { setErr(error.message); setBusy(false); return; }
       await router.navigate({ to: "/admin" });
     } catch (e: any) {
@@ -116,7 +114,7 @@ function AdminLogin() {
         {info && <p className="text-xs text-emerald-400">{info}</p>}
 
         <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-          Only {ADMIN_EMAIL} can access this area.
+          Restricted area. Access is limited to authorized accounts.
         </p>
       </form>
     </main>
