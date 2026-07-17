@@ -1,16 +1,25 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { listDriveDownloads, uploadToDrive, type DriveFile } from "@/lib/drive.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/files")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Files · BLACK PIXAL" },
       { name: "description", content: "Upload files securely to BLACK PIXAL or download shared assets." },
+      { name: "robots", content: "noindex" },
     ],
   }),
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user?.email) {
+      throw redirect({ to: "/admin/login" });
+    }
+  },
   component: FilesPage,
 });
 
@@ -21,6 +30,25 @@ function fmtSize(b?: string) {
   if (n < 1024 ** 2) return `${(n / 1024).toFixed(1)} KB`;
   if (n < 1024 ** 3) return `${(n / 1024 ** 2).toFixed(1)} MB`;
   return `${(n / 1024 ** 3).toFixed(2)} GB`;
+}
+
+async function downloadWithAuth(f: DriveFile) {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error("Not signed in");
+  const res = await fetch(`/api/drive/download/${f.id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Download failed (${res.status})`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = f.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 function FilesPage() {
@@ -88,12 +116,13 @@ function FilesPage() {
             }`}
           >
             <p className="text-sm">Drop files here or click to browse</p>
-            <p className="mt-1 text-xs text-muted-foreground">Multiple files supported</p>
+            <p className="mt-1 text-xs text-muted-foreground">Images, video, or PDF · up to 50 MB</p>
           </div>
           <input
             ref={inputRef}
             type="file"
             multiple
+            accept="image/*,video/mp4,video/webm,application/pdf"
             className="hidden"
             onChange={(e) => e.target.files && uploadFiles(e.target.files)}
           />
@@ -156,12 +185,13 @@ function FilesPage() {
                       <td className="px-4 py-3 hidden sm:table-cell">{fmtSize(f.size)}</td>
                       <td className="px-4 py-3 hidden md:table-cell">{f.modifiedTime ? new Date(f.modifiedTime).toLocaleDateString() : "—"}</td>
                       <td className="px-4 py-3 text-right">
-                        <a
-                          href={`/api/drive/download/${f.id}`}
+                        <button
+                          type="button"
+                          onClick={() => downloadWithAuth(f).catch((e) => alert(e?.message ?? "Download failed"))}
                           className="inline-flex rounded-md border border-border px-3 py-1 text-xs uppercase tracking-[0.2em] hover:bg-card"
                         >
                           Download
-                        </a>
+                        </button>
                       </td>
                     </tr>
                   ))

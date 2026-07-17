@@ -1,9 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
 
 export const Route = createFileRoute("/api/drive/download/$id")({
   server: {
     handlers: {
-      GET: async ({ params }) => {
+      GET: async ({ params, request }) => {
+        // Authenticate the caller via Supabase before proxying any Drive file.
+        const authHeader = request.headers.get("authorization") ?? "";
+        const token = authHeader.toLowerCase().startsWith("bearer ")
+          ? authHeader.slice(7).trim()
+          : "";
+        if (!token) return new Response("Unauthorized", { status: 401 });
+
+        const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+        const supabaseKey =
+          process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        if (!supabaseUrl || !supabaseKey) {
+          return new Response("Auth not configured", { status: 500 });
+        }
+        const sb = createClient(supabaseUrl, supabaseKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const { data: userData, error: userErr } = await sb.auth.getUser(token);
+        if (userErr || !userData.user?.email) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+        const allowed = (process.env.ADMIN_EMAIL ?? "").toLowerCase().trim();
+        if (!allowed || userData.user.email.toLowerCase().trim() !== allowed) {
+          return new Response("Forbidden", { status: 403 });
+        }
+
         const lovableKey = process.env.LOVABLE_API_KEY;
         const driveKey = process.env.GOOGLE_DRIVE_API_KEY;
         if (!lovableKey || !driveKey) {
