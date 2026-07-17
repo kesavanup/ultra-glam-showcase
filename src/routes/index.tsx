@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useRef, useState } from "react";
 import { listPortfolio, type PortfolioItem } from "@/lib/portfolio.functions";
 import { listSiteContent } from "@/lib/site-content.functions";
 
@@ -20,11 +18,6 @@ import workColor from "@/assets/work-color.jpg";
 
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { AdminButton } from "@/components/AdminButton";
-
-
-
-gsap.registerPlugin(ScrollTrigger);
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -200,55 +193,16 @@ function Nav() {
 
 function Hero() {
   const t = useSiteContent();
-  const wrap = useRef<HTMLDivElement>(null);
-  const img = useRef<HTMLDivElement>(null);
-  const title = useRef<HTMLHeadingElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Slow continuous zoom (cinematic Ken Burns)
-      gsap.to(img.current, {
-        scale: 1.18,
-        duration: 18,
-        ease: "none",
-        repeat: -1,
-        yoyo: true,
-      });
-      // Parallax + reveal on scroll
-      gsap.to(img.current, {
-        yPercent: 25,
-        ease: "none",
-        scrollTrigger: { trigger: wrap.current, start: "top top", end: "bottom top", scrub: true },
-      });
-      gsap.to(title.current, {
-        yPercent: -40,
-        opacity: 0,
-        ease: "none",
-        scrollTrigger: { trigger: wrap.current, start: "top top", end: "bottom top", scrub: true },
-      });
-      // Letter reveal (skip if no char spans exist — headline is sr-only)
-      const chars = title.current?.querySelectorAll<HTMLSpanElement>("[data-char]");
-      if (chars && chars.length > 0) {
-        gsap.from(chars, {
-          yPercent: 110,
-          duration: 1.4,
-          ease: "expo.out",
-          stagger: 0.04,
-          delay: 0.2,
-        });
-      }
-    }, wrap);
-    return () => ctx.revert();
-  }, []);
-
   const headline = "BLACK PIXAL";
   return (
-    <section id="top" ref={wrap} className="relative h-[100svh] w-full overflow-hidden grain bg-black">
+    <section id="top" className="relative h-[100svh] w-full overflow-hidden grain bg-black">
       {/* Cinematic still background */}
-      <div ref={img} className="pointer-events-none absolute inset-0 will-change-transform">
+      <div className="hero-ken-burns pointer-events-none absolute inset-0">
         <img
           src={heroImg}
           alt=""
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/85" />
@@ -264,9 +218,8 @@ function Hero() {
 
         <div>
           <h1
-            ref={title}
             aria-label={headline}
-            className="font-serif text-[clamp(2.5rem,10vw,8rem)] font-semibold leading-[0.95] tracking-tight text-foreground"
+            className="hero-title font-serif text-[clamp(2.5rem,10vw,8rem)] font-semibold leading-[0.95] tracking-tight text-foreground"
           >
             <span className="block">BLACK</span>
             <span className="block bg-gradient-to-r from-gold via-foreground to-gold bg-clip-text italic text-transparent">
@@ -287,93 +240,6 @@ function Hero() {
 
       <ScrollIndicator />
     </section>
-  );
-}
-
-function UnderConstruction() {
-  const t = useSiteContent();
-  const line = t("hero_uc_line", "in progress — building something extraordinary");
-  const top = t("hero_uc_title_top", "WEBSITE");
-  const bottom = t("hero_uc_title_bottom", "UNDER CONSTRUCTION");
-  const tagline = t("hero_tagline", "Crafting pixel by pixel — a cinematic experience is loading.");
-  const root = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      const chars = root.current?.querySelectorAll<HTMLSpanElement>("[data-uc-char]");
-      if (chars && chars.length) {
-        gsap.from(chars, {
-          yPercent: 120,
-          opacity: 0,
-          rotateX: -60,
-          duration: 1.2,
-          ease: "expo.out",
-          stagger: 0.03,
-          delay: 0.3,
-        });
-      }
-      gsap.from(root.current?.querySelectorAll("[data-uc-line]") ?? [], {
-        opacity: 0,
-        y: 20,
-        duration: 1,
-        ease: "power3.out",
-        stagger: 0.15,
-        delay: 0.6,
-      });
-      gsap.to(root.current?.querySelector("[data-uc-shimmer]") ?? {}, {
-        backgroundPositionX: "200%",
-        duration: 6,
-        ease: "none",
-        repeat: -1,
-      });
-    }, root);
-    return () => ctx.revert();
-  }, []);
-
-  const title = `${top} ${bottom}`;
-  return (
-    <div ref={root} className="mt-2 select-none">
-      <div data-uc-line className="mb-4 flex items-center gap-3">
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
-        </span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-gold/90">
-          {line}
-        </span>
-      </div>
-
-      <h2
-        aria-label={title}
-        className="font-serif text-[clamp(1.55rem,7.5vw,5.5rem)] font-semibold leading-[1] tracking-tight text-foreground break-words"
-      >
-        <span className="block overflow-hidden">
-          {top.split("").map((c, i) => (
-            <span key={`w-${i}`} data-uc-char className="inline-block">
-              {c === " " ? "\u00A0" : c}
-            </span>
-          ))}
-        </span>
-        <span
-          data-uc-shimmer
-          className="mt-1 block overflow-hidden bg-gradient-to-r from-gold via-foreground to-gold bg-[length:200%_100%] bg-clip-text italic text-transparent"
-          style={{ WebkitTextFillColor: "transparent" }}
-        >
-          {bottom.split("").map((c, i) => (
-            <span key={`u-${i}`} data-uc-char className="inline-block">
-              {c === " " ? "\u00A0" : c}
-            </span>
-          ))}
-        </span>
-      </h2>
-
-      <p
-        data-uc-line
-        className="mt-4 max-w-xl text-sm italic text-foreground/60 md:text-base"
-      >
-        {tagline}
-        <span className="ml-2 font-mono not-italic text-gold/80">Stay tuned.</span>
-      </p>
-    </div>
   );
 }
 
@@ -400,7 +266,7 @@ function Marquee() {
   ];
   const list = [...words, ...words, ...words];
   return (
-    <section aria-hidden className="border-y border-border/60 bg-ink/80 backdrop-blur-md py-6 overflow-hidden">
+    <section aria-hidden className="border-y border-border/60 bg-ink py-6 overflow-hidden">
       <div className="marquee flex gap-12 whitespace-nowrap">
         {list.map((w, i) => (
           <span
@@ -417,24 +283,8 @@ function Marquee() {
 }
 
 function Services() {
-  const root = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from("[data-service]", {
-        y: 60,
-        opacity: 0,
-        duration: 1,
-        ease: "expo.out",
-        stagger: 0.08,
-        scrollTrigger: { trigger: root.current, start: "top 75%" },
-      });
-    }, root);
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <section id="services" ref={root} className="relative bg-background/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
+    <section id="services" className="relative bg-background px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="01" label="Services" />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
@@ -446,7 +296,6 @@ function Services() {
           {services.map((s) => (
             <article
               key={s.n}
-              data-service
               className="hover-glow group relative bg-background p-8 md:p-10"
             >
               <div className="flex items-start justify-between">
@@ -472,7 +321,6 @@ function Services() {
 
 function Portfolio() {
   const [filter, setFilter] = useState<Category>("All");
-  const root = useRef<HTMLDivElement>(null);
   const listPortfolioFn = useServerFn(listPortfolio);
   const { data: cmsItems = [] } = useQuery({
     queryKey: ["public-portfolio"],
@@ -506,21 +354,8 @@ function Portfolio() {
   ];
   const items = allItems.filter((p) => filter === "All" || p.cat === filter);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from("[data-work]", {
-        y: 80,
-        opacity: 0,
-        duration: 1,
-        ease: "expo.out",
-        stagger: 0.07,
-      });
-    }, root);
-    return () => ctx.revert();
-  }, [filter, cmsItems.length]);
-
   return (
-    <section id="work" className="relative bg-ink/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
+    <section id="work" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
           <div>
@@ -548,22 +383,19 @@ function Portfolio() {
         </div>
 
         <div
-          ref={root}
           className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
         >
           {items.map((p, i) => (
             <figure
               key={`${p.title}-${i}`}
-              data-work
               className="hover-glow group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-sm bg-background"
             >
               {p.isVideo ? (
                 <video
                   src={p.src}
                   muted
-                  loop
                   playsInline
-                  autoPlay
+                  preload="metadata"
                   className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                 />
               ) : (
@@ -571,6 +403,7 @@ function Portfolio() {
                   src={p.img}
                   alt={p.title}
                   loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                 />
               )}
@@ -633,7 +466,7 @@ function BeforeAfter() {
   };
 
   return (
-    <section className="relative bg-background/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
+    <section className="relative bg-background px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="03" label="Before / After" />
         <div className="mt-6 grid gap-10 md:grid-cols-[1fr_1fr] md:items-end">
@@ -667,6 +500,7 @@ function BeforeAfter() {
             src={afterSrc}
             alt="After retouching"
             loading="lazy"
+            decoding="async"
             draggable={false}
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
@@ -678,6 +512,7 @@ function BeforeAfter() {
               src={beforeSrc}
               alt="Before retouching"
               loading="lazy"
+              decoding="async"
               draggable={false}
               className="absolute inset-0 h-full w-full object-cover"
             />
@@ -715,7 +550,7 @@ function AiVideoShowcase() {
     { title: "Onyx Ritual", duration: "00:32", img: workSocial },
   ];
   return (
-    <section id="films" className="relative bg-ink/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
+    <section id="films" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="04" label="AI Films" />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
@@ -733,6 +568,7 @@ function AiVideoShowcase() {
                 src={f.img}
                 alt={f.title}
                 loading="lazy"
+                decoding="async"
                 className="h-full w-full object-cover transition-transform duration-[1500ms] ease-out group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/40 transition group-hover:bg-black/20" />
@@ -797,7 +633,7 @@ function AiVideoShowcase() {
 function Testimonials() {
   const row = [...testimonials, ...testimonials];
   return (
-    <section className="relative bg-background/80 backdrop-blur-md px-0 py-28 md:py-40">
+    <section className="relative bg-background px-0 py-28 md:py-40">
       <div className="mx-auto max-w-[1400px] px-6 md:px-12">
         <SectionLabel num="05" label="Testimonials" />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
@@ -810,7 +646,7 @@ function Testimonials() {
           {row.map((t, i) => (
             <article
               key={i}
-              className="w-[340px] shrink-0 rounded-sm border border-border/60 bg-white/[0.03] p-8 backdrop-blur-md md:w-[420px]"
+              className="w-[340px] shrink-0 rounded-sm border border-border/60 bg-white/[0.03] p-8 md:w-[420px]"
             >
               <span className="font-display text-5xl leading-none text-gold">"</span>
               <p className="mt-2 font-display text-xl italic leading-snug text-foreground/90">
@@ -832,7 +668,7 @@ function Testimonials() {
 
 function Contact() {
   return (
-    <section id="contact" className="relative bg-ink/80 backdrop-blur-md px-6 py-28 md:px-12 md:py-40">
+    <section id="contact" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num="06" label="Contact" />
         <h2 className="mt-6 max-w-4xl font-display text-6xl leading-[0.95] tracking-tight md:text-[9vw]">
