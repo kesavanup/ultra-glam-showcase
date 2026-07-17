@@ -21,7 +21,7 @@ import workColor from "@/assets/work-color.jpg";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { AdminButton } from "@/components/AdminButton";
 
-import heroVideo from "@/assets/hero-construction.mp4.asset.json";
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -244,20 +244,15 @@ function Hero() {
   const headline = "BLACK PIXAL";
   return (
     <section id="top" ref={wrap} className="relative h-[100svh] w-full overflow-hidden grain bg-black">
-      {/* Cinematic MP4 background — replaces heavy WebGL for smooth performance */}
+      {/* Cinematic still background */}
       <div ref={img} className="pointer-events-none absolute inset-0 will-change-transform">
-        <video
-          src={heroVideo.url}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          poster={heroImg}
+        <img
+          src={heroImg}
+          alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/85" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.55)_85%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/85" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.6)_85%)]" />
       </div>
 
       <div className="relative z-10 mx-auto flex h-full max-w-[1400px] flex-col justify-between px-6 pb-20 pt-28 md:px-12 md:pt-40">
@@ -268,8 +263,16 @@ function Hero() {
         </div>
 
         <div>
-          <h1 ref={title} className="sr-only" aria-label={headline}>{headline}</h1>
-          <UnderConstruction />
+          <h1
+            ref={title}
+            aria-label={headline}
+            className="font-serif text-[clamp(2.5rem,10vw,8rem)] font-semibold leading-[0.95] tracking-tight text-foreground"
+          >
+            <span className="block">BLACK</span>
+            <span className="block bg-gradient-to-r from-gold via-foreground to-gold bg-clip-text italic text-transparent">
+              PIXAL
+            </span>
+          </h1>
           <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-[1fr_auto] md:items-end md:gap-8">
             <p className="max-w-xl text-balance text-sm leading-relaxed text-foreground/70 md:text-base">
               {t("hero_desc", "An editorial studio for brands that refuse the ordinary. We craft cinematic visuals, identity systems and AI-native films — all in black and gold.")}
