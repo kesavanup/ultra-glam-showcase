@@ -14,14 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      page_sections: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          page: string
+          section_type: string
+          sort_order: number
+          title: string
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          page?: string
+          section_type: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          page?: string
+          section_type?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
+      portfolio_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       portfolio_items: {
         Row: {
+          categories: string[]
           category: string
+          client: string | null
+          config: Json
           created_at: string
           description: string
+          display_type: string
+          featured: boolean
+          hover_effect: string
           id: string
           media_type: string
           media_url: string
+          project_date: string | null
           published: boolean
           sort_order: number
           thumbnail_url: string | null
@@ -29,12 +96,19 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          categories?: string[]
           category: string
+          client?: string | null
+          config?: Json
           created_at?: string
           description?: string
+          display_type?: string
+          featured?: boolean
+          hover_effect?: string
           id?: string
           media_type?: string
           media_url: string
+          project_date?: string | null
           published?: boolean
           sort_order?: number
           thumbnail_url?: string | null
@@ -42,12 +116,19 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          categories?: string[]
           category?: string
+          client?: string | null
+          config?: Json
           created_at?: string
           description?: string
+          display_type?: string
+          featured?: boolean
+          hover_effect?: string
           id?: string
           media_type?: string
           media_url?: string
+          project_date?: string | null
           published?: boolean
           sort_order?: number
           thumbnail_url?: string | null
