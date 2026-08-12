@@ -2,14 +2,33 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertAdminEmail } from "./admin-auth";
 
+export type DisplayType =
+  | "image"
+  | "gallery"
+  | "before_after"
+  | "album"
+  | "mockup"
+  | "youtube"
+  | "video"
+  | "pdf"
+  | "gif"
+  | "html";
+
 export type PortfolioItem = {
   id: string;
   category: string;
+  categories: string[];
   title: string;
   description: string;
   media_url: string;
   media_type: "image" | "video";
   thumbnail_url: string | null;
+  display_type: DisplayType;
+  config: Record<string, any>;
+  hover_effect: string;
+  featured: boolean;
+  client: string | null;
+  project_date: string | null;
   sort_order: number;
   published: boolean;
   created_at: string;
@@ -44,8 +63,24 @@ async function signMediaWith(sb: any, item: any): Promise<PortfolioItem> {
     const { data } = await sb.storage.from("portfolio").createSignedUrl(path, 60 * 60 * 24 * 7);
     return bust(data?.signedUrl ?? null);
   };
+  // Recursively resolve any `storage:` refs stored inside the display config.
+  const signDeep = async (value: any): Promise<any> => {
+    if (typeof value === "string") {
+      return value.startsWith("storage:") ? ((await signOne(value)) ?? "") : value;
+    }
+    if (Array.isArray(value)) return Promise.all(value.map(signDeep));
+    if (value && typeof value === "object") {
+      const out: Record<string, any> = {};
+      for (const [k, v] of Object.entries(value)) out[k] = await signDeep(v);
+      return out;
+    }
+    return value;
+  };
   return {
     ...(item as PortfolioItem),
+    categories: item.categories?.length ? item.categories : [item.category].filter(Boolean),
+    display_type: (item.display_type ?? "image") as DisplayType,
+    config: await signDeep(item.config ?? {}),
     media_url: (await signOne(item.media_url)) ?? "",
     thumbnail_url: await signOne(item.thumbnail_url),
   };
@@ -62,6 +97,61 @@ export const listPortfolio = createServerFn({ method: "GET" }).handler(async () 
   if (error) throw error;
   return Promise.all((data ?? []).map((row: any) => signMediaWith(sb, row)));
 });
+
+export type PortfolioCategory = { id: string; name: string; slug: string; sort_order: number };
+
+export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
+  const sb = await publicClient();
+  const { data, error } = await sb
+    .from("portfolio_categories")
+    .select("id, name, slug, sort_order")
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as PortfolioCategory[];
+});
+
+const slugify = (s: string) =>
+  s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+export const upsertCategory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id?: string; name: string; sort_order?: number }) => {
+    if (!d?.name?.trim()) throw new Error("Name required");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    assertAdminEmail(context.claims as any);
+    const sb = await admin();
+    const payload = {
+      name: data.name.trim(),
+      slug: slugify(data.name),
+      sort_order: data.sort_order ?? 0,
+    };
+    if (data.id) {
+      const { error } = await sb.from("portfolio_categories").update(payload).eq("id", data.id);
+      if (error) throw error;
+      return { id: data.id };
+    }
+    const { data: row, error } = await sb
+      .from("portfolio_categories")
+      .insert(payload)
+      .select("id")
+      .single();
+    if (error) throw error;
+    return { id: row!.id };
+  });
+
+export const deleteCategory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    assertAdminEmail(context.claims as any);
+    const sb = await admin();
+    const { error } = await sb.from("portfolio_categories").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
 
 
 export const listAllPortfolio = createServerFn({ method: "GET" })
