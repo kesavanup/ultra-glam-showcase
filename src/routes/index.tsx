@@ -346,13 +346,15 @@ function Portfolio() {
     img: i.thumbnail_url ?? i.media_url,
     isVideo: i.media_type === "video",
     src: i.media_url,
+    item: i as PortfolioItem | undefined,
   }));
 
   const allItems = [
     ...cmsMapped,
-    ...portfolio.map((p) => ({ ...p, isVideo: false, src: p.img })),
+    ...portfolio.map((p) => ({ ...p, isVideo: false, src: p.img, item: undefined as PortfolioItem | undefined })),
   ];
   const items = allItems.filter((p) => filter === "All" || p.cat === filter);
+  const [active, setActive] = useState<PortfolioItem | null>(null);
 
   return (
     <section id="work" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
@@ -382,22 +384,15 @@ function Portfolio() {
           ))}
         </div>
 
-        <div
-          className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-        >
+        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {items.map((p, i) => (
             <figure
               key={`${p.title}-${i}`}
+              onClick={() => p.item && setActive(p.item)}
               className="hover-glow group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-sm bg-background"
             >
-              {p.isVideo ? (
-                <video
-                  src={p.src}
-                  muted
-                  playsInline
-                  preload="metadata"
-                  className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                />
+              {p.item ? (
+                <PortfolioPreview item={p.item} />
               ) : (
                 <img
                   src={p.img}
@@ -407,8 +402,8 @@ function Portfolio() {
                   className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent opacity-90 transition-opacity duration-500" />
-              <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6">
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent opacity-90 transition-opacity duration-500" />
+              <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between p-6">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-gold">
                     {p.cat}
@@ -425,9 +420,31 @@ function Portfolio() {
           ))}
         </div>
       </div>
+
+      {active && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/90 p-4"
+          onClick={() => setActive(null)}
+        >
+          <div className="my-8 w-full max-w-4xl space-y-4" onClick={(e) => e.stopPropagation()}>
+            <PortfolioRenderer item={active} />
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <h3 className="font-display text-2xl text-white">{active.title}</h3>
+                {active.description && <p className="mt-1 max-w-xl text-sm text-white/60">{active.description}</p>}
+                {active.client && <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.3em] text-gold">{active.client}</p>}
+              </div>
+              <button onClick={() => setActive(null)} className="rounded-full border border-white/30 px-4 py-2 text-xs uppercase tracking-[0.25em] text-white">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
+
 
 function BeforeAfter() {
   const t = useSiteContent();
