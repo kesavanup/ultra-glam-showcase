@@ -3,6 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { listPortfolio, type PortfolioItem } from "@/lib/portfolio.functions";
+import { PortfolioPreview, PortfolioRenderer } from "@/components/portfolio/PortfolioRenderer";
+
 import { listSiteContent } from "@/lib/site-content.functions";
 
 import heroImg from "@/assets/hero.jpg";
