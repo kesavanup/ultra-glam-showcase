@@ -113,6 +113,27 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
 const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
+// Signed URLs are short-lived. Convert them back to durable `storage:` refs
+// before writing to the database so re-saving an item never bakes in a token.
+function toRef(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const m = value.match(/\/object\/sign\/portfolio\/([^?]+)/);
+  if (m) return `storage:${decodeURIComponent(m[1])}`;
+  return value.replace(/([?&])v=[^&]*/g, "$1").replace(/[?&]$/, "");
+}
+
+function derefDeep(value: any): any {
+  if (typeof value === "string") return toRef(value) ?? "";
+  if (Array.isArray(value)) return value.map(derefDeep);
+  if (value && typeof value === "object") {
+    const out: Record<string, any> = {};
+    for (const [k, v] of Object.entries(value)) out[k] = derefDeep(v);
+    return out;
+  }
+  return value;
+}
+
+
 export const upsertCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id?: string; name: string; sort_order?: number }) => {
