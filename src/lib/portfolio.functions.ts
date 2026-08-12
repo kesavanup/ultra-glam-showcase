@@ -198,14 +198,22 @@ export const upsertPortfolio = createServerFn({ method: "POST" })
     const sb = await admin();
     const payload: any = {
       category: data.category,
+      categories: data.categories?.length ? data.categories : [data.category].filter(Boolean),
       title: data.title ?? "",
       description: data.description ?? "",
-      media_url: data.media_url,
+      media_url: toRef(data.media_url),
       media_type: data.media_type ?? "image",
-      thumbnail_url: data.thumbnail_url ?? null,
+      thumbnail_url: toRef(data.thumbnail_url) ?? null,
+      display_type: data.display_type ?? "image",
+      config: derefDeep(data.config ?? {}),
+      hover_effect: data.hover_effect ?? "zoom",
+      featured: data.featured ?? false,
+      client: data.client ?? null,
+      project_date: data.project_date || null,
       sort_order: data.sort_order ?? 0,
       published: data.published ?? true,
     };
+
     if (data.id) {
       const { error } = await sb.from("portfolio_items").update(payload).eq("id", data.id);
       if (error) throw error;
