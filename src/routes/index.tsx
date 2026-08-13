@@ -6,6 +6,7 @@ import { listPortfolio, type PortfolioItem } from "@/lib/portfolio.functions";
 import { PortfolioPreview, PortfolioRenderer } from "@/components/portfolio/PortfolioRenderer";
 
 import { listSiteContent } from "@/lib/site-content.functions";
+import { listSections } from "@/lib/sections.functions";
 
 import heroImg from "@/assets/hero.jpg";
 import logoOriginal from "@/assets/logo-original.png";
@@ -348,11 +349,11 @@ function Marquee() {
   );
 }
 
-function Services() {
+function Services({ num, label }: { num: string; label: string }) {
   return (
     <section id="services" className="relative bg-background px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <SectionLabel num="01" label="Services" />
+        <SectionLabel num={num} label={label} />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
           A studio where <em className="gold-text">editorial taste</em> meets
           AI craft.
@@ -385,7 +386,7 @@ function Services() {
   );
 }
 
-function Portfolio() {
+function Portfolio({ num, label }: { num: string; label: string }) {
   const [filter, setFilter] = useState<Category>("All");
   const listPortfolioFn = useServerFn(listPortfolio);
   const { data: cmsItems = [] } = useQuery({
@@ -427,7 +428,7 @@ function Portfolio() {
       <div className="mx-auto max-w-[1400px]">
         <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
           <div>
-            <SectionLabel num="02" label="Selected Work" />
+            <SectionLabel num={num} label={label} />
             <h2 className="mt-6 max-w-2xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
               A vault of <em className="gold-text">quiet</em> obsession.
             </h2>
@@ -512,7 +513,7 @@ function Portfolio() {
 }
 
 
-function BeforeAfter() {
+function BeforeAfter({ num, label }: { num: string; label: string }) {
   const t = useSiteContent();
   const afterSrc = t("after_image_url", workRetouchAfter);
   const beforeSrc = t("before_image_url", workRetouchBefore);
@@ -551,7 +552,7 @@ function BeforeAfter() {
   return (
     <section className="relative bg-background px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <SectionLabel num="03" label="Before / After" />
+        <SectionLabel num={num} label={label} />
         <div className="mt-6 grid gap-10 md:grid-cols-[1fr_1fr] md:items-end">
           <h2 className="font-display text-5xl leading-[1] tracking-tight md:text-7xl">
             Retouching, <em className="gold-text">undone</em>.
@@ -625,7 +626,7 @@ function BeforeAfter() {
   );
 }
 
-function AiVideoShowcase() {
+function AiVideoShowcase({ num, label }: { num: string; label: string }) {
   const [active, setActive] = useState<number | null>(null);
   const films = [
     { title: "Midnight Drive", duration: "00:48", img: workAiVideo },
@@ -635,7 +636,7 @@ function AiVideoShowcase() {
   return (
     <section id="films" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <SectionLabel num="04" label="AI Films" />
+        <SectionLabel num={num} label={label} />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
           Director-led <em className="gold-text">AI films</em>.
         </h2>
@@ -713,12 +714,12 @@ function AiVideoShowcase() {
   );
 }
 
-function Testimonials() {
+function Testimonials({ num, label }: { num: string; label: string }) {
   const row = [...testimonials, ...testimonials];
   return (
     <section className="relative bg-background px-0 py-28 md:py-40">
       <div className="mx-auto max-w-[1400px] px-6 md:px-12">
-        <SectionLabel num="05" label="Testimonials" />
+        <SectionLabel num={num} label={label} />
         <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
           What our <em className="gold-text">clients</em> say.
         </h2>
@@ -749,11 +750,11 @@ function Testimonials() {
   );
 }
 
-function Contact() {
+function Contact({ num, label }: { num: string; label: string }) {
   return (
     <section id="contact" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <SectionLabel num="06" label="Contact" />
+        <SectionLabel num={num} label={label} />
         <h2 className="mt-6 max-w-4xl font-display text-6xl leading-[0.95] tracking-tight md:text-[9vw]">
           Let's make something
           <br />
