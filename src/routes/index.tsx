@@ -144,22 +144,86 @@ function useSiteContent() {
   };
 }
 
+const DEFAULT_SECTIONS = [
+  { section_type: "hero", title: "Hero" },
+  { section_type: "marquee", title: "Marquee" },
+  { section_type: "services", title: "Services" },
+  { section_type: "work", title: "Selected Work" },
+  { section_type: "before_after", title: "Before / After" },
+  { section_type: "films", title: "AI Films" },
+  { section_type: "testimonials", title: "Testimonials" },
+  { section_type: "contact", title: "Contact" },
+];
+
 function Home() {
+  const listSectionsFn = useServerFn(listSections);
+  const { data } = useQuery({
+    queryKey: ["public-sections"],
+    queryFn: () => listSectionsFn(),
+    staleTime: 30_000,
+  });
+
+  const sections = (data && data.length ? data : DEFAULT_SECTIONS).filter(
+    (s: any) => s.visible !== false,
+  );
+
+  let n = 0;
+  const num = () => String(++n).padStart(2, "0");
+
   return (
     <main className="relative z-10 text-foreground">
       <Nav />
-      <Hero />
-      <Marquee />
-      <Services />
-      <Portfolio />
-      <BeforeAfter />
-      <AiVideoShowcase />
-      <Testimonials />
-      <Contact />
+      {sections.map((s: any, i: number) => {
+        const key = s.id ?? `${s.section_type}-${i}`;
+        switch (s.section_type) {
+          case "hero":
+            return <Hero key={key} />;
+          case "marquee":
+            return <Marquee key={key} />;
+          case "services":
+            return <Services key={key} num={num()} label={s.title || "Services"} />;
+          case "work":
+            return <Portfolio key={key} num={num()} label={s.title || "Selected Work"} />;
+          case "before_after":
+            return <BeforeAfter key={key} num={num()} label={s.title || "Before / After"} />;
+          case "films":
+            return <AiVideoShowcase key={key} num={num()} label={s.title || "AI Films"} />;
+          case "testimonials":
+            return <Testimonials key={key} num={num()} label={s.title || "Testimonials"} />;
+          case "contact":
+            return <Contact key={key} num={num()} label={s.title || "Contact"} />;
+          case "custom_text":
+            return (
+              <CustomTextSection
+                key={key}
+                num={num()}
+                label={s.title || "Section"}
+                body={String(s.data?.body ?? "")}
+              />
+            );
+          default:
+            return null;
+        }
+      })}
       <Footer />
     </main>
   );
 }
+
+function CustomTextSection({ num, label, body }: { num: string; label: string; body: string }) {
+  if (!body.trim()) return null;
+  return (
+    <section className="relative bg-background px-6 py-24 md:px-12 md:py-32">
+      <div className="mx-auto max-w-[1400px]">
+        <SectionLabel num={num} label={label} />
+        <p className="mt-6 max-w-3xl whitespace-pre-line font-display text-2xl leading-snug text-foreground/80 md:text-3xl">
+          {body}
+        </p>
+      </div>
+    </section>
+  );
+}
+
 
 
 function Nav() {
