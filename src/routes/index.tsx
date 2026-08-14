@@ -145,6 +145,20 @@ function useSiteContent() {
   };
 }
 
+/** Reads a JSON list stored in site content, falling back to built-in copy. */
+function useSiteList<T>(key: string, fallback: T[]): T[] {
+  const t = useSiteContent();
+  const raw = t(key, "");
+  if (!raw.trim()) return fallback;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? (parsed as T[]) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+
 const DEFAULT_SECTIONS = [
   { section_type: "hero", title: "Hero" },
   { section_type: "marquee", title: "Marquee" },
