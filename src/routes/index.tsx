@@ -242,13 +242,16 @@ function CustomTextSection({ num, label, body }: { num: string; label: string; b
 
 
 function Nav() {
+  const t = useSiteContent();
+  const brand = t("brand_name", "BLACK PIXAL");
+  const logo = t("logo_url", logoOriginal);
   return (
     <header className="fixed left-0 right-0 top-0 z-50">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-6 md:px-12">
         <a href="#top" className="flex items-center gap-3 mix-blend-difference">
-          <img src={logoOriginal} alt="Black Pixal" className="h-9 w-9 object-contain" />
+          <img src={logo} alt={brand} className="h-9 w-9 object-contain" />
           <span className="font-display text-xl font-bold tracking-[0.25em] text-white">
-            BLACK PIXAL
+            {brand}
           </span>
         </a>
         <nav className="hidden gap-10 text-[11px] uppercase tracking-[0.3em] text-white md:flex mix-blend-difference">
@@ -262,7 +265,7 @@ function Nav() {
             href="#contact"
             className="hidden rounded-full border border-white/40 px-4 py-2 text-[11px] uppercase tracking-[0.25em] text-white transition hover:bg-white hover:text-black sm:inline-flex mix-blend-difference"
           >
-            Get Quote
+            {t("nav_cta_label", "Get Quote")}
           </a>
           <ThemeSwitcher />
           <AdminButton />
@@ -274,13 +277,16 @@ function Nav() {
 
 function Hero() {
   const t = useSiteContent();
-  const headline = "BLACK PIXAL";
+  const titleTop = t("hero_title_top", "BLACK");
+  const titleBottom = t("hero_title_bottom", "PIXAL");
+  const headline = `${titleTop} ${titleBottom}`;
+  const bg = t("hero_image_url", heroImg);
   return (
     <section id="top" className="relative h-[100svh] w-full overflow-hidden grain bg-black">
       {/* Cinematic still background */}
       <div className="hero-ken-burns pointer-events-none absolute inset-0">
         <img
-          src={heroImg}
+          src={bg}
           alt=""
           fetchPriority="high"
           decoding="async"
@@ -302,9 +308,9 @@ function Hero() {
             aria-label={headline}
             className="hero-title font-serif text-[clamp(2.5rem,10vw,8rem)] font-semibold leading-[0.95] tracking-tight text-foreground"
           >
-            <span className="block">BLACK</span>
+            <span className="block">{titleTop}</span>
             <span className="block bg-gradient-to-r from-gold via-foreground to-gold bg-clip-text italic text-transparent">
-              PIXAL
+              {titleBottom}
             </span>
           </h1>
           <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-[1fr_auto] md:items-end md:gap-8">
@@ -336,15 +342,14 @@ function ScrollIndicator() {
 }
 
 function Marquee() {
-  const words = [
-    "Banner Design",
-    "Pamphlet",
-    "Logo & Branding",
-    "Photo Retouching",
-    "Color Correction",
-    "AI Video",
-    "Social Ads",
-  ];
+  const t = useSiteContent();
+  const words = t(
+    "marquee_words",
+    "Banner Design, Pamphlet, Logo & Branding, Photo Retouching, Color Correction, AI Video, Social Ads",
+  )
+    .split(",")
+    .map((w) => w.trim())
+    .filter(Boolean);
   const list = [...words, ...words, ...words];
   return (
     <section aria-hidden className="border-y border-border/60 bg-ink py-6 overflow-hidden">
@@ -364,23 +369,26 @@ function Marquee() {
 }
 
 function Services({ num, label }: { num: string; label: string }) {
+  const t = useSiteContent();
+  const items = useSiteList<{ n?: string; title: string; desc: string }>("services_json", services);
   return (
     <section id="services" className="relative bg-background px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num={num} label={label} />
-        <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
-          A studio where <em className="gold-text">editorial taste</em> meets
-          AI craft.
+        <h2 className="mt-6 max-w-3xl whitespace-pre-line font-display text-5xl leading-[1] tracking-tight md:text-7xl">
+          {t("services_heading", "A studio where editorial taste meets AI craft.")}
         </h2>
 
         <div className="mt-16 grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-border/60 bg-border/60 md:grid-cols-2 lg:grid-cols-3">
-          {services.map((s) => (
+          {items.map((s, si) => (
             <article
-              key={s.n}
+              key={s.title + si}
               className="hover-glow group relative bg-background p-8 md:p-10"
             >
               <div className="flex items-start justify-between">
-                <span className="font-mono text-[11px] text-gold/70">{s.n}</span>
+                <span className="font-mono text-[11px] text-gold/70">
+                  {s.n ?? String(si + 1).padStart(2, "0")}
+                </span>
                 <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-foreground/40 transition group-hover:text-gold">
                   →
                 </span>
@@ -402,6 +410,8 @@ function Services({ num, label }: { num: string; label: string }) {
 
 function Portfolio({ num, label }: { num: string; label: string }) {
   const [filter, setFilter] = useState<Category>("All");
+  const tc = useSiteContent();
+  const workHeading = tc("work_heading", "A vault of quiet obsession.");
   const listPortfolioFn = useServerFn(listPortfolio);
   const { data: cmsItems = [] } = useQuery({
     queryKey: ["public-portfolio"],
@@ -443,8 +453,8 @@ function Portfolio({ num, label }: { num: string; label: string }) {
         <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
           <div>
             <SectionLabel num={num} label={label} />
-            <h2 className="mt-6 max-w-2xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
-              A vault of <em className="gold-text">quiet</em> obsession.
+            <h2 className="mt-6 max-w-2xl whitespace-pre-line font-display text-5xl leading-[1] tracking-tight md:text-7xl">
+              {workHeading}
             </h2>
           </div>
         </div>
@@ -568,13 +578,14 @@ function BeforeAfter({ num, label }: { num: string; label: string }) {
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num={num} label={label} />
         <div className="mt-6 grid gap-10 md:grid-cols-[1fr_1fr] md:items-end">
-          <h2 className="font-display text-5xl leading-[1] tracking-tight md:text-7xl">
-            Retouching, <em className="gold-text">undone</em>.
+          <h2 className="whitespace-pre-line font-display text-5xl leading-[1] tracking-tight md:text-7xl">
+            {t("before_after_heading", "Retouching, undone.")}
           </h2>
-          <p className="max-w-md text-sm leading-relaxed text-foreground/60">
-            Drag the slider — or tap anywhere on the image — to compare an
-            untouched capture with a Black Pixal high-end retouch. Skin texture
-            is preserved, never plasticised.
+          <p className="max-w-md whitespace-pre-line text-sm leading-relaxed text-foreground/60">
+            {t(
+              "before_after_desc",
+              "Drag the slider — or tap anywhere on the image — to compare an untouched capture with a Black Pixal high-end retouch. Skin texture is preserved, never plasticised.",
+            )}
           </p>
         </div>
 
@@ -642,17 +653,18 @@ function BeforeAfter({ num, label }: { num: string; label: string }) {
 
 function AiVideoShowcase({ num, label }: { num: string; label: string }) {
   const [active, setActive] = useState<number | null>(null);
-  const films = [
+  const t = useSiteContent();
+  const films = useSiteList<{ title: string; duration: string; img: string }>("films_json", [
     { title: "Midnight Drive", duration: "00:48", img: workAiVideo },
     { title: "Lobby Hour", duration: "01:12", img: workColor },
     { title: "Onyx Ritual", duration: "00:32", img: workSocial },
-  ];
+  ]);
   return (
     <section id="films" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num={num} label={label} />
-        <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
-          Director-led <em className="gold-text">AI films</em>.
+        <h2 className="mt-6 max-w-3xl whitespace-pre-line font-display text-5xl leading-[1] tracking-tight md:text-7xl">
+          {t("films_heading", "Director-led AI films.")}
         </h2>
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -729,13 +741,18 @@ function AiVideoShowcase({ num, label }: { num: string; label: string }) {
 }
 
 function Testimonials({ num, label }: { num: string; label: string }) {
-  const row = [...testimonials, ...testimonials];
+  const t2 = useSiteContent();
+  const list = useSiteList<{ quote: string; name: string; role: string }>(
+    "testimonials_json",
+    testimonials,
+  );
+  const row = [...list, ...list];
   return (
     <section className="relative bg-background px-0 py-28 md:py-40">
       <div className="mx-auto max-w-[1400px] px-6 md:px-12">
         <SectionLabel num={num} label={label} />
-        <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[1] tracking-tight md:text-7xl">
-          What our <em className="gold-text">clients</em> say.
+        <h2 className="mt-6 max-w-3xl whitespace-pre-line font-display text-5xl leading-[1] tracking-tight md:text-7xl">
+          {t2("testimonials_heading", "What our clients say.")}
         </h2>
       </div>
 
@@ -765,40 +782,34 @@ function Testimonials({ num, label }: { num: string; label: string }) {
 }
 
 function Contact({ num, label }: { num: string; label: string }) {
+  const t = useSiteContent();
+  const cards = useSiteList<{ label: string; value: string; href: string }>("contacts_json", [
+    { label: "WhatsApp", value: "+91 98406 60671", href: "https://wa.me/919840660671" },
+    { label: "Instagram", value: "@blackpixalstudio", href: "https://instagram.com/blackpixalstudio" },
+    { label: "Email", value: "blackpixalstudio@gmail.com", href: "mailto:blackpixalstudio@gmail.com" },
+  ]);
   return (
     <section id="contact" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
         <SectionLabel num={num} label={label} />
-        <h2 className="mt-6 max-w-4xl font-display text-6xl leading-[0.95] tracking-tight md:text-[9vw]">
-          Let's make something
+        <h2 className="mt-6 max-w-4xl whitespace-pre-line font-display text-6xl leading-[0.95] tracking-tight md:text-[9vw]">
+          {t("contact_heading", "Let's make something")}
           <br />
-          <em className="gold-text gold-glow">unforgettable.</em>
+          <em className="gold-text gold-glow">{t("contact_heading_accent", "unforgettable.")}</em>
         </h2>
 
         <div className="mt-16 grid gap-12 md:grid-cols-[1fr_auto] md:items-end">
           <div className="grid gap-6 sm:grid-cols-3">
-            <ContactCard
-              label="WhatsApp"
-              value="+91 98406 60671"
-              href="https://wa.me/919840660671"
-            />
-            <ContactCard
-              label="Instagram"
-              value="@blackpixalstudio"
-              href="https://instagram.com/blackpixalstudio"
-            />
-            <ContactCard
-              label="Email"
-              value="blackpixalstudio@gmail.com"
-              href="mailto:blackpixalstudio@gmail.com"
-            />
+            {cards.map((c, i) => (
+              <ContactCard key={c.label + i} label={c.label} value={c.value} href={c.href} />
+            ))}
           </div>
 
           <a
-            href="mailto:blackpixalstudio@gmail.com?subject=Project%20Quote"
+            href={t("contact_cta_href", "mailto:blackpixalstudio@gmail.com?subject=Project%20Quote")}
             className="group relative inline-flex items-center justify-center gap-3 self-start overflow-hidden rounded-full bg-gold px-10 py-5 font-mono text-[11px] uppercase tracking-[0.3em] text-ink transition hover:scale-[1.02]"
           >
-            <span className="relative z-10">Get Quote</span>
+            <span className="relative z-10">{t("contact_cta_label", "Get Quote")}</span>
             <span className="relative z-10">→</span>
             <span className="absolute inset-0 bg-gradient-to-r from-gold-soft via-gold to-gold-deep opacity-0 transition group-hover:opacity-100" />
           </a>
@@ -827,11 +838,14 @@ function ContactCard({ label, value, href }: { label: string; value: string; hre
 }
 
 function Footer() {
+  const t = useSiteContent();
   return (
     <footer className="border-t border-border/60 px-6 py-10 md:px-12">
       <div className="mx-auto flex max-w-[1400px] flex-col gap-4 text-[11px] uppercase tracking-[0.3em] text-foreground/50 md:flex-row md:items-center md:justify-between">
-        <p>© {new Date().getFullYear()} Black Pixal — All rights reserved</p>
-        <p className="font-mono">Crafted in black & gold</p>
+        <p>
+          © {new Date().getFullYear()} {t("footer_left", "Black Pixal — All rights reserved")}
+        </p>
+        <p className="font-mono">{t("footer_right", "Crafted in black & gold")}</p>
       </div>
     </footer>
   );
