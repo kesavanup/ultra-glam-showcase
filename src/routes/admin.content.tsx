@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
+import { useServerFn } from "@/lib/cms";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
   listSiteContent,
   upsertSiteContent,
   uploadSiteImage,
-} from "@/lib/site-content.functions";
+} from "@/lib/cms";
 import { supabase } from "@/integrations/supabase/client";
 
 async function ensureFreshSession() {
@@ -18,34 +18,131 @@ async function ensureFreshSession() {
   }
 }
 
+type SubField = { key: string; label: string; kind?: "text" | "textarea" | "image" };
+
 type Field = {
   key: string;
   label: string;
   hint?: string;
-  kind: "text" | "textarea" | "image";
+  kind: "text" | "textarea" | "image" | "list";
   placeholder?: string;
+  sub?: SubField[];
 };
 
 const FIELDS: { section: string; items: Field[] }[] = [
   {
+    section: "Brand & navigation",
+    items: [
+      { key: "brand_name", kind: "text", label: "Brand name", placeholder: "BLACK PIXAL" },
+      { key: "logo_url", kind: "image", label: "Logo", hint: "Shown top-left" },
+      { key: "nav_cta_label", kind: "text", label: "Nav button label", placeholder: "Get Quote" },
+    ],
+  },
+  {
     section: "Hero — top of homepage",
     items: [
       { key: "hero_kicker", kind: "text", label: "Kicker line", placeholder: "est. 2024 — creative design & ai studio" },
-      { key: "hero_uc_line", kind: "text", label: "Status line", placeholder: "in progress — building something extraordinary" },
-      { key: "hero_uc_title_top", kind: "text", label: "Big title — line 1", placeholder: "WEBSITE" },
-      { key: "hero_uc_title_bottom", kind: "text", label: "Big title — line 2", placeholder: "UNDER CONSTRUCTION" },
-      { key: "hero_tagline", kind: "textarea", label: "Tagline (italic under title)", placeholder: "Crafting pixel by pixel — a cinematic experience is loading." },
+      { key: "hero_title_top", kind: "text", label: "Big title — line 1", placeholder: "BLACK" },
+      { key: "hero_title_bottom", kind: "text", label: "Big title — line 2", placeholder: "PIXAL" },
       { key: "hero_desc", kind: "textarea", label: "Long description", placeholder: "An editorial studio for brands that refuse the ordinary…" },
+      { key: "hero_image_url", kind: "image", label: "Hero background image" },
     ],
+  },
+  {
+    section: "Scrolling strip",
+    items: [
+      {
+        key: "marquee_words",
+        kind: "text",
+        label: "Words (comma separated)",
+        placeholder: "Banner Design, Pamphlet, Logo & Branding, …",
+      },
+    ],
+  },
+  {
+    section: "Services",
+    items: [
+      { key: "services_heading", kind: "textarea", label: "Section heading" },
+      {
+        key: "services_json",
+        kind: "list",
+        label: "Service cards",
+        sub: [
+          { key: "n", label: "Number" },
+          { key: "title", label: "Title" },
+          { key: "desc", label: "Description", kind: "textarea" },
+        ],
+      },
+    ],
+  },
+  {
+    section: "Work / portfolio",
+    items: [{ key: "work_heading", kind: "textarea", label: "Section heading" }],
   },
   {
     section: "Before / After slider",
     items: [
+      { key: "before_after_heading", kind: "textarea", label: "Section heading" },
+      { key: "before_after_desc", kind: "textarea", label: "Section description" },
       { key: "before_image_url", kind: "image", label: "Before image", hint: "Untouched / with blemishes" },
       { key: "after_image_url", kind: "image", label: "After image", hint: "Cinematic retouched result" },
     ],
   },
+  {
+    section: "AI films",
+    items: [
+      { key: "films_heading", kind: "textarea", label: "Section heading" },
+      {
+        key: "films_json",
+        kind: "list",
+        label: "Films",
+        sub: [
+          { key: "title", label: "Title" },
+          { key: "duration", label: "Duration" },
+          { key: "img", label: "Poster image", kind: "image" },
+        ],
+      },
+    ],
+  },
+  {
+    section: "Testimonials",
+    items: [
+      { key: "testimonials_heading", kind: "textarea", label: "Section heading" },
+      {
+        key: "testimonials_json",
+        kind: "list",
+        label: "Testimonials",
+        sub: [
+          { key: "quote", label: "Quote", kind: "textarea" },
+          { key: "name", label: "Name" },
+          { key: "role", label: "Role" },
+        ],
+      },
+    ],
+  },
+  {
+    section: "Contact & footer",
+    items: [
+      { key: "contact_heading", kind: "textarea", label: "Heading line 1" },
+      { key: "contact_heading_accent", kind: "text", label: "Heading accent (italic gold)" },
+      {
+        key: "contacts_json",
+        kind: "list",
+        label: "Contact cards",
+        sub: [
+          { key: "label", label: "Label" },
+          { key: "value", label: "Value" },
+          { key: "href", label: "Link" },
+        ],
+      },
+      { key: "contact_cta_label", kind: "text", label: "CTA button label" },
+      { key: "contact_cta_href", kind: "text", label: "CTA button link" },
+      { key: "footer_left", kind: "text", label: "Footer left text" },
+      { key: "footer_right", kind: "text", label: "Footer right text" },
+    ],
+  },
 ];
+
 
 export const Route = createFileRoute("/admin/content")({
   head: () => ({

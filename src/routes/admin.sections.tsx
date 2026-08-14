@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
+import { useServerFn } from "@/lib/cms";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -8,7 +8,7 @@ import {
   deleteSection,
   reorderSections,
   type PageSection,
-} from "@/lib/sections.functions";
+} from "@/lib/cms";
 
 const SECTION_TYPES = [
   "hero",
