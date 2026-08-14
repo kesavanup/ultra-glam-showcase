@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
+import { useServerFn } from "@/lib/cms";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import {
@@ -13,7 +13,7 @@ import {
   deleteCategory,
   type PortfolioItem,
   type DisplayType,
-} from "@/lib/portfolio.functions";
+} from "@/lib/cms";
 import { HOVER_EFFECTS } from "@/components/portfolio/PortfolioRenderer";
 import { supabase } from "@/integrations/supabase/client";
 

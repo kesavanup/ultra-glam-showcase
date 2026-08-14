@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
+import { useServerFn } from "@/lib/cms";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { listPortfolio, type PortfolioItem } from "@/lib/portfolio.functions";
+import { listPortfolio, type PortfolioItem } from "@/lib/cms";
 import { PortfolioPreview, PortfolioRenderer } from "@/components/portfolio/PortfolioRenderer";
 
-import { listSiteContent } from "@/lib/site-content.functions";
-import { listSections } from "@/lib/sections.functions";
+import { listSiteContent } from "@/lib/cms";
+import { listSections } from "@/lib/cms";
 
 import heroImg from "@/assets/hero.jpg";
 import logoOriginal from "@/assets/logo-original.png";
