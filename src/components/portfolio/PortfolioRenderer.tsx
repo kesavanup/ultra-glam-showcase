@@ -1,6 +1,6 @@
 import { ClientOnly } from "@tanstack/react-router";
 import { Suspense, lazy, useState } from "react";
-import type { PortfolioItem } from "@/lib/portfolio.functions";
+import type { PortfolioItem } from "@/lib/cms";
 import { BeforeAfterSlider } from "./BeforeAfterSlider";
 
 const AlbumViewer3D = lazy(() => import("./AlbumViewer3D"));
