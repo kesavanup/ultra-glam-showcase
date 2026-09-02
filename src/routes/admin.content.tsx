@@ -194,6 +194,14 @@ function ContentAdmin() {
     } finally { setBusy(false); }
   }
 
+  async function uploadReturning(file: File): Promise<string> {
+    try { await ensureFreshSession(); } catch {}
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await upload({ data: fd });
+    return res.storageRef;
+  }
+
   async function uploadFor(key: string, file: File) {
     setUploading(key); setErr(null); setOk(null);
     try { await ensureFreshSession(); } catch {}
@@ -240,6 +248,7 @@ function ContentAdmin() {
                       value={values[f.key] ?? ""}
                       onChange={(v) => set(f.key, v)}
                       onPickImage={(file) => uploadFor(f.key, file)}
+                      uploadFile={uploadReturning}
                       uploading={uploading === f.key}
                     />
                   ))}
@@ -273,12 +282,14 @@ function FieldRow({
   value,
   onChange,
   onPickImage,
+  uploadFile,
   uploading,
 }: {
   field: Field;
   value: string;
   onChange: (v: string) => void;
   onPickImage: (f: File) => void;
+  uploadFile: (f: File) => Promise<string>;
   uploading: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
@@ -293,6 +304,9 @@ function FieldRow({
           <span className="text-[10px] italic text-muted-foreground/70">{field.hint}</span>
         )}
       </label>
+      {field.kind === "list" && (
+        <ListEditor field={field} value={value} onChange={onChange} uploadFile={uploadFile} />
+      )}
       {field.kind === "text" && (
         <input
           value={value}
@@ -357,6 +371,143 @@ function FieldRow({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ListEditor({
+  field,
+  value,
+  onChange,
+  uploadFile,
+}: {
+  field: Field;
+  value: string;
+  onChange: (v: string) => void;
+  uploadFile: (f: File) => Promise<string>;
+}) {
+  let rows: Record<string, string>[] = [];
+  try {
+    const parsed = JSON.parse(value || "[]");
+    if (Array.isArray(parsed)) rows = parsed;
+  } catch {
+    rows = [];
+  }
+  const sub = field.sub ?? [];
+  const commit = (next: Record<string, string>[]) => onChange(JSON.stringify(next));
+
+  return (
+    <div className="space-y-3">
+      {rows.length === 0 && (
+        <p className="text-xs italic text-muted-foreground">
+          Empty — the website shows its default content. Add an item to override it.
+        </p>
+      )}
+      {rows.map((row, i) => (
+        <div key={i} className="rounded-lg border border-border bg-black/20 p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+              Item {i + 1}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (i === 0) return;
+                  const n = [...rows];
+                  [n[i - 1], n[i]] = [n[i], n[i - 1]];
+                  commit(n);
+                }}
+                className="rounded border border-border px-2 py-0.5 text-[10px]"
+              >
+                ↑
+              </button>
+              <button
+                onClick={() => {
+                  if (i === rows.length - 1) return;
+                  const n = [...rows];
+                  [n[i + 1], n[i]] = [n[i], n[i + 1]];
+                  commit(n);
+                }}
+                className="rounded border border-border px-2 py-0.5 text-[10px]"
+              >
+                ↓
+              </button>
+              <button
+                onClick={() => commit(rows.filter((_, x) => x !== i))}
+                className="rounded border border-border px-2 py-0.5 text-[10px] text-destructive"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {sub.map((sf) => (
+              <div key={sf.key}>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  {sf.label}
+                </span>
+                {sf.kind === "textarea" ? (
+                  <textarea
+                    rows={2}
+                    value={row[sf.key] ?? ""}
+                    onChange={(e) => {
+                      const n = [...rows];
+                      n[i] = { ...row, [sf.key]: e.target.value };
+                      commit(n);
+                    }}
+                    className="w-full rounded-md border border-border bg-input/40 px-3 py-2 text-sm"
+                  />
+                ) : sf.kind === "image" ? (
+                  <div className="flex items-center gap-2">
+                    {row[sf.key] && (
+                      <img src={row[sf.key]} alt="" className="h-12 w-16 rounded object-cover" />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        const ref = await uploadFile(f);
+                        const n = [...rows];
+                        n[i] = { ...row, [sf.key]: ref };
+                        commit(n);
+                      }}
+                      className="text-[10px]"
+                    />
+                    <input
+                      value={row[sf.key] ?? ""}
+                      onChange={(e) => {
+                        const n = [...rows];
+                        n[i] = { ...row, [sf.key]: e.target.value };
+                        commit(n);
+                      }}
+                      placeholder="…or paste URL"
+                      className="flex-1 rounded-md border border-border bg-input/40 px-3 py-2 text-xs"
+                    />
+                  </div>
+                ) : (
+                  <input
+                    value={row[sf.key] ?? ""}
+                    onChange={(e) => {
+                      const n = [...rows];
+                      n[i] = { ...row, [sf.key]: e.target.value };
+                      commit(n);
+                    }}
+                    className="w-full rounded-md border border-border bg-input/40 px-3 py-2 text-sm"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <button
+        onClick={() => commit([...rows, Object.fromEntries(sub.map((sf) => [sf.key, ""]))])}
+        className="rounded-md border border-border px-3 py-2 text-[10px] uppercase tracking-[0.25em] hover:bg-card"
+      >
+        + Add item
+      </button>
     </div>
   );
 }

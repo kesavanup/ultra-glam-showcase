@@ -333,13 +333,34 @@ export async function listSiteContent(): Promise<SiteContentMap> {
   const out: SiteContentMap = {};
   for (const row of data ?? []) {
     const v = (row.value ?? "") as string;
-    out[row.key as string] = v.startsWith("storage:") ? ((await signOne(v)) ?? "") : v;
+    if (v.startsWith("storage:")) {
+      out[row.key as string] = (await signOne(v)) ?? "";
+    } else if (v.trim().startsWith("[") || v.trim().startsWith("{")) {
+      try {
+        out[row.key as string] = JSON.stringify(await signDeep(JSON.parse(v)));
+      } catch {
+        out[row.key as string] = v;
+      }
+    } else {
+      out[row.key as string] = v;
+    }
   }
   return out;
 }
 
 export async function upsertSiteContent(arg: { data: { entries: { key: string; value: string }[] } }) {
-  const rows = arg.data.entries.map((e) => ({ key: e.key, value: toRef(e.value) ?? "" }));
+  const rows = arg.data.entries.map((e) => {
+    const raw = e.value ?? "";
+    const trimmed = raw.trim();
+    if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+      try {
+        return { key: e.key, value: JSON.stringify(derefDeep(JSON.parse(raw))) };
+      } catch {
+        return { key: e.key, value: raw };
+      }
+    }
+    return { key: e.key, value: toRef(raw) ?? "" };
+  });
   const { error } = await supabase.from("site_content").upsert(rows, { onConflict: "key" });
   if (error) throw error;
   return { ok: true };
