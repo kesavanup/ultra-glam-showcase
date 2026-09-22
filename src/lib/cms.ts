@@ -372,6 +372,12 @@ export async function uploadSiteImage(arg: { data: FormData }) {
   return { storageRef: await uploadFile(file, "site/") };
 }
 
+/** Upload a file and get back a URL that can be rendered immediately. */
+export async function uploadSiteMedia(file: File): Promise<string> {
+  const ref = await uploadFile(file, "site/");
+  return (await signOne(ref)) ?? "";
+}
+
 /* ------------------------------------------------------------------- admin */
 
 export async function isCurrentUserAdmin(): Promise<boolean> {
