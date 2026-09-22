@@ -1,26 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@/lib/cms";
-import { useQuery } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import {
+  EditorProvider,
+  T,
+  useEditor,
+  useEditableList,
+  ItemControls,
+  AddItem,
+} from "@/lib/editor";
 import { listPortfolio, type PortfolioItem } from "@/lib/cms";
+import { useQuery } from "@tanstack/react-query";
 import { PortfolioPreview, PortfolioRenderer } from "@/components/portfolio/PortfolioRenderer";
+import { HeroStage, Nav, useHeroSettings } from "@/components/HeroStage";
+import { EditToolbar } from "@/components/EditToolbar";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
-import { listSiteContent } from "@/lib/cms";
-import { listSections } from "@/lib/cms";
-
-import heroImg from "@/assets/hero.jpg";
-import logoOriginal from "@/assets/logo-original.png";
-import workBanner from "@/assets/work-banner.jpg";
-import workPamphlet from "@/assets/work-pamphlet.jpg";
-import workLogo from "@/assets/work-logo.jpg";
 import workRetouchAfter from "@/assets/work-retouch-after.jpg";
 import workRetouchBefore from "@/assets/work-retouch-before.jpg";
 import workAiVideo from "@/assets/work-aivideo.jpg";
-import workSocial from "@/assets/work-social.jpg";
 import workColor from "@/assets/work-color.jpg";
+import workSocial from "@/assets/work-social.jpg";
 
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
-import { AdminButton } from "@/components/AdminButton";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -35,288 +35,235 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Editorial. Cinematic. AI-native. Crafted in black and gold.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Home,
+  component: () => (
+    <EditorProvider>
+      <Home />
+    </EditorProvider>
+  ),
 });
 
-type Category =
-  | "All"
-  | "Banner"
-  | "Pamphlet"
-  | "Logo"
-  | "Retouching"
-  | "AI Video"
-  | "Social Media Ads";
+type SectionType =
+  | "hero"
+  | "marquee"
+  | "services"
+  | "work"
+  | "before_after"
+  | "films"
+  | "testimonials"
+  | "contact";
 
-const services = [
-  {
-    n: "01",
-    title: "Banner Design",
-    desc: "Editorial campaign banners that command attention across every channel.",
-  },
-  {
-    n: "02",
-    title: "Pamphlet & Flyer",
-    desc: "Print collateral with rhythm, restraint and an unmistakable point of view.",
-  },
-  {
-    n: "03",
-    title: "Logo & Branding",
-    desc: "Identity systems built to outlive trends — quiet, considered, iconic.",
-  },
-  {
-    n: "04",
-    title: "Photo Retouching",
-    desc: "High-end skin, product and fashion retouching at the level of Vogue covers.",
-  },
-  {
-    n: "05",
-    title: "Color Correction",
-    desc: "Cinematic color grading that gives every frame mood, weight and intent.",
-  },
-  {
-    n: "06",
-    title: "AI Video Creation",
-    desc: "Director-led AI films and motion pieces blending craft with new tooling.",
-  },
+const DEFAULT_LAYOUT: { type: SectionType; label: string; visible: boolean }[] = [
+  { type: "hero", label: "Hero", visible: true },
+  { type: "marquee", label: "Marquee", visible: true },
+  { type: "services", label: "Services", visible: true },
+  { type: "work", label: "Selected Work", visible: true },
+  { type: "before_after", label: "Before / After", visible: true },
+  { type: "films", label: "AI Films", visible: true },
+  { type: "testimonials", label: "Testimonials", visible: true },
+  { type: "contact", label: "Contact", visible: true },
 ];
 
-const portfolio: { title: string; cat: Exclude<Category, "All">; img: string }[] = [
-  { title: "Aurum — Spring Campaign", cat: "Banner", img: workBanner },
-  { title: "Maison Noir — Trifold", cat: "Pamphlet", img: workPamphlet },
-  { title: "Ñ Monogram", cat: "Logo", img: workLogo },
-  { title: "Editorial Portrait No. 7", cat: "Retouching", img: workRetouchAfter },
-  { title: "Midnight Drive", cat: "AI Video", img: workAiVideo },
-  { title: "Onyx Perfume — IG Ad", cat: "Social Media Ads", img: workSocial },
-  { title: "Lobby — Color Grade", cat: "Banner", img: workColor },
-  { title: "Velvet Hour", cat: "Social Media Ads", img: workSocial },
-];
-
-const filters: Category[] = [
-  "All",
-  "Banner",
-  "Pamphlet",
-  "Logo",
-  "Retouching",
-  "AI Video",
-  "Social Media Ads",
-];
-
-const testimonials = [
-  {
-    quote:
-      "Black Pixal turned our launch into a film. The restraint, the gold, the silence between frames — it sold the brand on its own.",
-    name: "Amara V.",
-    role: "Founder, Maison Noir",
-  },
-  {
-    quote: "The only studio I've worked with that treats AI like a camera, not a gimmick.",
-    name: "Devon K.",
-    role: "Creative Director, Aurum",
-  },
-  {
-    quote: "Retouching at a level I've only seen on Italian Vogue. Quietly perfect.",
-    name: "Priya R.",
-    role: "Photographer",
-  },
-  {
-    quote: "They redesigned our identity in three weeks and our investor decks landed differently.",
-    name: "Marcus L.",
-    role: "CEO, Onyx Capital",
-  },
-  {
-    quote: "Editorial taste, technical precision, zero ego. Rare combination.",
-    name: "Sora T.",
-    role: "Art Director",
-  },
-];
-
-function useSiteContent() {
-  const fetchFn = useServerFn(listSiteContent);
-  const { data = {} } = useQuery({
-    queryKey: ["public-site-content"],
-    queryFn: () => fetchFn(),
-    staleTime: 30_000,
-  });
-  return (key: string, fallback: string) => {
-    const v = data[key];
-    return v && v.trim().length > 0 ? v : fallback;
-  };
-}
-
-/** Reads a JSON list stored in site content, falling back to built-in copy. */
-function useSiteList<T>(key: string, fallback: T[]): T[] {
-  const t = useSiteContent();
-  const raw = t(key, "");
-  if (!raw.trim()) return fallback;
+function useLayout() {
+  const { editing, get, set } = useEditor();
+  let layout = DEFAULT_LAYOUT;
   try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length ? (parsed as T[]) : fallback;
+    const parsed = JSON.parse(get("sections_json", "")) || [];
+    if (Array.isArray(parsed) && parsed.length) layout = parsed;
   } catch {
-    return fallback;
+    /* ignore */
   }
+  return { editing, layout, setLayout: (l: typeof layout) => set("sections_json", JSON.stringify(l)) };
 }
-
-
-const DEFAULT_SECTIONS = [
-  { section_type: "hero", title: "Hero" },
-  { section_type: "marquee", title: "Marquee" },
-  { section_type: "services", title: "Services" },
-  { section_type: "work", title: "Selected Work" },
-  { section_type: "before_after", title: "Before / After" },
-  { section_type: "films", title: "AI Films" },
-  { section_type: "testimonials", title: "Testimonials" },
-  { section_type: "contact", title: "Contact" },
-];
 
 function Home() {
-  const listSectionsFn = useServerFn(listSections);
-  const { data } = useQuery({
-    queryKey: ["public-sections"],
-    queryFn: () => listSectionsFn(),
-    staleTime: 30_000,
+  const { layout } = useLayout();
+  const listPortfolioFn = listPortfolio;
+  const { data: cmsItems = [] } = useQuery({
+    queryKey: ["public-portfolio"],
+    queryFn: () => listPortfolioFn(),
+    staleTime: 60_000,
   });
-
-  const sections = (data && data.length ? data : DEFAULT_SECTIONS).filter(
-    (s: any) => s.visible !== false,
-  );
-
-  let n = 0;
-  const num = () => String(++n).padStart(2, "0");
 
   return (
     <main className="relative z-10 text-foreground">
-      <Nav />
-      {sections.map((s: any, i: number) => {
-        const key = s.id ?? `${s.section_type}-${i}`;
-        switch (s.section_type) {
-          case "hero":
-            return <Hero key={key} />;
-          case "marquee":
-            return <Marquee key={key} />;
-          case "services":
-            return <Services key={key} num={num()} label={s.title || "Services"} />;
-          case "work":
-            return <Portfolio key={key} num={num()} label={s.title || "Selected Work"} />;
-          case "before_after":
-            return <BeforeAfter key={key} num={num()} label={s.title || "Before / After"} />;
-          case "films":
-            return <AiVideoShowcase key={key} num={num()} label={s.title || "AI Films"} />;
-          case "testimonials":
-            return <Testimonials key={key} num={num()} label={s.title || "Testimonials"} />;
-          case "contact":
-            return <Contact key={key} num={num()} label={s.title || "Contact"} />;
-          case "custom_text":
-            return (
-              <CustomTextSection
-                key={key}
-                num={num()}
-                label={s.title || "Section"}
-                body={String(s.data?.body ?? "")}
-              />
-            );
-          default:
-            return null;
-        }
-      })}
+      <PageLayoutPanel />
+      <NavWithSections />
+      {layout
+        .filter((s) => s.visible)
+        .map((s, i) => {
+          const num = String(i + 1).padStart(2, "0");
+          const key = `${s.type}-${i}`;
+          switch (s.type) {
+            case "hero":
+              return <Hero key={key} />;
+            case "marquee":
+              return <Marquee key={key} />;
+            case "services":
+              return <Services key={key} num={num} label={s.label} />;
+            case "work":
+              return <Portfolio key={key} num={num} label={s.label} items={cmsItems} />;
+            case "before_after":
+              return <BeforeAfter key={key} num={num} label={s.label} />;
+            case "films":
+              return <Films key={key} num={num} label={s.label} />;
+            case "testimonials":
+              return <Testimonials key={key} num={num} label={s.label} />;
+            case "contact":
+              return <Contact key={key} num={num} label={s.label} />;
+            default:
+              return null;
+          }
+        })}
       <Footer />
+      <EditToolbar />
+      <ThemeSwitcher />
     </main>
   );
 }
 
-function CustomTextSection({ num, label, body }: { num: string; label: string; body: string }) {
-  if (!body.trim()) return null;
+/** Floating panel to reorder / hide / rename homepage sections. */
+function PageLayoutPanel() {
+  const { editing, layout, setLayout } = useLayout();
+  const [open, setOpen] = useState(false);
+  if (!editing) return null;
   return (
-    <section className="relative bg-background px-6 py-24 md:px-12 md:py-32">
-      <div className="mx-auto max-w-[1400px]">
-        <SectionLabel num={num} label={label} />
-        <p className="mt-6 max-w-3xl whitespace-pre-line font-display text-2xl leading-snug text-foreground/80 md:text-3xl">
-          {body}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-
-
-function Nav() {
-  const t = useSiteContent();
-  const brand = t("brand_name", "BLACK PIXAL");
-  const logo = t("logo_url", logoOriginal);
-  return (
-    <header className="fixed left-0 right-0 top-0 z-50">
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-6 md:px-12">
-        <a href="#top" className="flex items-center gap-3 mix-blend-difference">
-          <img src={logo} alt={brand} className="h-9 w-9 object-contain" />
-          <span className="font-display text-xl font-bold tracking-[0.25em] text-white">
-            {brand}
-          </span>
-        </a>
-        <nav className="hidden gap-10 text-[11px] uppercase tracking-[0.3em] text-white md:flex mix-blend-difference">
-          <a href="#services" className="hover:opacity-60">Services</a>
-          <a href="#work" className="hover:opacity-60">Work</a>
-          <a href="#films" className="hover:opacity-60">Films</a>
-          <a href="#contact" className="hover:opacity-60">Contact</a>
-        </nav>
-        <div className="flex items-center gap-3">
-          <a
-            href="#contact"
-            className="hidden rounded-full border border-white/40 px-4 py-2 text-[11px] uppercase tracking-[0.25em] text-white transition hover:bg-white hover:text-black sm:inline-flex mix-blend-difference"
-          >
-            {t("nav_cta_label", "Get Quote")}
-          </a>
-          <ThemeSwitcher />
-          <AdminButton />
+    <div className="fixed right-5 top-24 z-[80] text-[11px] text-white">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="rounded-full border border-gold/60 bg-black/85 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.25em] text-gold backdrop-blur"
+      >
+        Page sections
+      </button>
+      {open && (
+        <div className="mt-2 w-64 rounded-xl border border-gold/40 bg-black/90 p-3 backdrop-blur">
+          {layout.map((s, i) => (
+            <div key={s.type + i} className="flex items-center gap-1 py-1">
+              <button
+                onClick={() => {
+                  const n = [...layout];
+                  if (i === 0) return;
+                  [n[i - 1], n[i]] = [n[i], n[i - 1]];
+                  setLayout(n);
+                }}
+                className="px-1 text-white/50 hover:text-gold"
+              >
+                ↑
+              </button>
+              <button
+                onClick={() => {
+                  const n = [...layout];
+                  if (i === layout.length - 1) return;
+                  [n[i + 1], n[i]] = [n[i], n[i + 1]];
+                  setLayout(n);
+                }}
+                className="px-1 text-white/50 hover:text-gold"
+              >
+                ↓
+              </button>
+              <input
+                value={s.label}
+                onChange={(e) => {
+                  const n = [...layout];
+                  n[i] = { ...s, label: e.target.value };
+                  setLayout(n);
+                }}
+                className="flex-1 rounded border border-white/20 bg-black/60 px-2 py-1 text-[11px]"
+              />
+              <input
+                type="checkbox"
+                checked={s.visible}
+                title="Show / hide section"
+                onChange={(e) => {
+                  const n = [...layout];
+                  n[i] = { ...s, visible: e.target.checked };
+                  setLayout(n);
+                }}
+              />
+            </div>
+          ))}
         </div>
-      </div>
-    </header>
+      )}
+    </div>
   );
 }
+
+function NavWithSections() {
+  const { layout } = useLayout();
+  const anchor: Record<SectionType, string> = {
+    hero: "top",
+    marquee: "",
+    services: "services",
+    work: "work",
+    before_after: "",
+    films: "films",
+    testimonials: "",
+    contact: "contact",
+  };
+  return (
+    <Nav
+      sections={layout
+        .filter((s) => s.visible && anchor[s.type])
+        .map((s) => ({ id: anchor[s.type], label: s.label }))}
+    />
+  );
+}
+
+/* ------------------------------------------------------------------- hero */
 
 function Hero() {
-  const t = useSiteContent();
-  const titleTop = t("hero_title_top", "BLACK");
-  const titleBottom = t("hero_title_bottom", "PIXAL");
-  const headline = `${titleTop} ${titleBottom}`;
-  const bg = t("hero_image_url", heroImg);
+  const s = useHeroSettings();
   return (
-    <section id="top" className="relative h-[100svh] w-full overflow-hidden grain bg-black">
-      {/* Cinematic still background */}
-      <div className="hero-ken-burns pointer-events-none absolute inset-0">
-        <img
-          src={bg}
-          alt=""
-          fetchPriority="high"
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/85" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.6)_85%)]" />
-      </div>
-
-      <div className="relative z-10 mx-auto flex h-full max-w-[1400px] flex-col justify-between px-6 pb-20 pt-28 md:px-12 md:pt-40">
+    <section
+      id="top"
+      className={`relative flex h-[100svh] w-full flex-col overflow-hidden bg-black ${
+        s.grain ? "grain" : ""
+      }`}
+    >
+      <HeroStage s={s} />
+      <div
+        className={`relative z-10 mx-auto flex h-full max-w-[1400px] flex-col justify-between px-6 pb-20 pt-28 md:px-12 md:pt-40 ${
+          s.align === "center" ? "items-center text-center" : ""
+        }`}
+      >
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-gold/80">
-            {t("hero_kicker", "est. 2024 — creative design & ai studio")}
-          </p>
+          <T
+            k="hero_kicker"
+            className="font-mono text-[10px] uppercase tracking-[0.4em] text-gold/80"
+          >
+            est. 2024 — creative design & ai studio
+          </T>
         </div>
-
         <div>
           <h1
-            aria-label={headline}
+            aria-label={`${s.align ? "" : ""}${"BLACK PIXAL"}`}
             className="hero-title font-serif text-[clamp(2.5rem,10vw,8rem)] font-semibold leading-[0.95] tracking-tight text-foreground"
           >
-            <span className="block">{titleTop}</span>
+            <span className="block">
+              <T k="hero_title_top">BLACK</T>
+            </span>
             <span className="block bg-gradient-to-r from-gold via-foreground to-gold bg-clip-text italic text-transparent">
-              {titleBottom}
+              <T k="hero_title_bottom">PIXAL</T>
             </span>
           </h1>
-          <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-[1fr_auto] md:items-end md:gap-8">
-            <p className="max-w-xl text-balance text-sm leading-relaxed text-foreground/70 md:text-base">
-              {t("hero_desc", "An editorial studio for brands that refuse the ordinary. We craft cinematic visuals, identity systems and AI-native films — all in black and gold.")}
-            </p>
+          <div
+            className={`mt-6 grid gap-6 md:mt-8 md:grid-cols-[1fr_auto] md:items-end md:gap-8 ${
+              s.align === "center" ? "md:grid-cols-1" : ""
+            }`}
+          >
+            <T
+              k="hero_desc"
+              as="p"
+              className={`max-w-xl text-balance text-sm leading-relaxed text-foreground/70 md:text-base ${
+                s.align === "center" ? "mx-auto" : ""
+              }`}
+            >
+              An editorial studio for brands that refuse the ordinary. We craft cinematic
+              visuals, identity systems and AI-native films — all in black and gold.
+            </T>
             <div className="hidden font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/50 md:block">
               <p>scroll</p>
               <p>↓</p>
@@ -324,7 +271,6 @@ function Hero() {
           </div>
         </div>
       </div>
-
       <ScrollIndicator />
     </section>
   );
@@ -341,25 +287,40 @@ function ScrollIndicator() {
   );
 }
 
+/* ---------------------------------------------------------------- marquee */
+
 function Marquee() {
-  const t = useSiteContent();
-  const words = t(
+  const { editing, get, set } = useEditor();
+  const words = get(
     "marquee_words",
     "Banner Design, Pamphlet, Logo & Branding, Photo Retouching, Color Correction, AI Video, Social Ads",
-  )
+  );
+  const list = words
     .split(",")
     .map((w) => w.trim())
     .filter(Boolean);
-  const list = [...words, ...words, ...words];
+  const row = [...list, ...list, ...list];
   return (
     <section aria-hidden className="border-y border-border/60 bg-ink py-6 overflow-hidden">
       <div className="marquee flex gap-12 whitespace-nowrap">
-        {list.map((w, i) => (
+        {(editing ? list : row).map((w, i) => (
           <span
             key={i}
             className="flex items-center gap-12 font-display text-3xl italic text-gold/80 md:text-5xl"
           >
-            {w}
+            {editing ? (
+              <input
+                value={w}
+                onChange={(e) => {
+                  const n = [...list];
+                  n[i] = e.target.value;
+                  set("marquee_words", n.join(", "));
+                }}
+                className="w-48 rounded border border-gold/50 bg-black/60 px-2 py-1 text-white"
+              />
+            ) : (
+              w
+            )}
             <span className="text-gold">✦</span>
           </span>
         ))}
@@ -368,23 +329,40 @@ function Marquee() {
   );
 }
 
+/* --------------------------------------------------------------- services */
+
+const SERVICES_FALLBACK = [
+  { n: "01", title: "Banner Design", desc: "Editorial campaign banners that command attention across every channel." },
+  { n: "02", title: "Pamphlet & Flyer", desc: "Print collateral with rhythm, restraint and an unmistakable point of view." },
+  { n: "03", title: "Logo & Branding", desc: "Identity systems built to outlive trends — quiet, considered, iconic." },
+  { n: "04", title: "Photo Retouching", desc: "High-end skin, product and fashion retouching at the level of Vogue covers." },
+  { n: "05", title: "Color Correction", desc: "Cinematic color grading that gives every frame mood, weight and intent." },
+  { n: "06", title: "AI Video Creation", desc: "Director-led AI films and motion pieces blending craft with new tooling." },
+];
+
 function Services({ num, label }: { num: string; label: string }) {
-  const t = useSiteContent();
-  const items = useSiteList<{ n?: string; title: string; desc: string }>("services_json", services);
+  const items = useEditableList<{ n?: string; title: string; desc: string }>(
+    "services_json",
+    SERVICES_FALLBACK,
+    { title: "New service", desc: "Description…" },
+  );
   return (
     <section id="services" className="relative bg-background px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <SectionLabel num={num} label={label} />
+        <SectionLabel num={num} k={`section_services_label`} fallback={label} />
         <h2 className="mt-6 max-w-3xl whitespace-pre-line font-display text-5xl leading-[1] tracking-tight md:text-7xl">
-          {t("services_heading", "A studio where editorial taste meets AI craft.")}
+          <T k="services_heading">A studio where editorial taste meets AI craft.</T>
         </h2>
-
         <div className="mt-16 grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-border/60 bg-border/60 md:grid-cols-2 lg:grid-cols-3">
-          {items.map((s, si) => (
-            <article
-              key={s.title + si}
-              className="hover-glow group relative bg-background p-8 md:p-10"
-            >
+          {items.items.map((s, si) => (
+            <article key={si} className="hover-glow group relative bg-background p-8 md:p-10">
+              {items.editing && (
+                <ItemControls
+                  onUp={() => items.move(si, -1)}
+                  onDown={() => items.move(si, 1)}
+                  onRemove={() => items.remove(si)}
+                />
+              )}
               <div className="flex items-start justify-between">
                 <span className="font-mono text-[11px] text-gold/70">
                   {s.n ?? String(si + 1).padStart(2, "0")}
@@ -394,57 +372,58 @@ function Services({ num, label }: { num: string; label: string }) {
                 </span>
               </div>
               <h3 className="mt-12 font-display text-3xl tracking-tight md:text-4xl">
-                {s.title}
+                {items.editing ? (
+                  <input
+                    value={s.title}
+                    onChange={(e) => items.patch(si, "title", e.target.value)}
+                    className="w-full rounded border border-gold/50 bg-black/60 px-2 py-1"
+                  />
+                ) : (
+                  s.title
+                )}
               </h3>
               <p className="mt-4 max-w-sm text-sm leading-relaxed text-foreground/60">
-                {s.desc}
+                {items.editing ? (
+                  <textarea
+                    rows={3}
+                    value={s.desc}
+                    onChange={(e) => items.patch(si, "desc", e.target.value)}
+                    className="w-full rounded border border-gold/50 bg-black/60 px-2 py-1"
+                  />
+                ) : (
+                  s.desc
+                )}
               </p>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px scale-x-0 bg-gradient-to-r from-transparent via-gold to-transparent transition-transform duration-700 group-hover:scale-x-100" />
             </article>
           ))}
         </div>
+        {items.editing && <div className="mt-6"><AddItem label="service" onClick={items.add} /></div>}
       </div>
     </section>
   );
 }
 
-function Portfolio({ num, label }: { num: string; label: string }) {
-  const [filter, setFilter] = useState<Category>("All");
-  const tc = useSiteContent();
-  const workHeading = tc("work_heading", "A vault of quiet obsession.");
-  const listPortfolioFn = useServerFn(listPortfolio);
-  const { data: cmsItems = [] } = useQuery({
-    queryKey: ["public-portfolio"],
-    queryFn: () => listPortfolioFn(),
-    staleTime: 60_000,
-  });
+/* -------------------------------------------------------------- portfolio */
 
-  const CMS_TO_CAT: Record<string, Exclude<Category, "All">> = {
-    "Banner Design": "Banner",
-    "Pamphlet Design": "Pamphlet",
-    "Logo Design": "Logo",
-    "Branding Projects": "Logo",
-    "High-End Retouch": "Retouching",
-    "Color Correction": "Retouching",
-    "AI Generated Videos": "AI Video",
-    "AI Generated Images": "AI Video",
-    "Social Media Designs": "Social Media Ads",
-  };
-
-  const cmsMapped = cmsItems.map((i: PortfolioItem) => ({
-    title: i.title || i.category,
-    cat: (CMS_TO_CAT[i.category] ?? "Banner") as Exclude<Category, "All">,
-    img: i.thumbnail_url ?? i.media_url,
-    isVideo: i.media_type === "video",
-    src: i.media_url,
-    item: i as PortfolioItem | undefined,
-  }));
-
-  const allItems = [
-    ...cmsMapped,
-    ...portfolio.map((p) => ({ ...p, isVideo: false, src: p.img, item: undefined as PortfolioItem | undefined })),
-  ];
-  const items = allItems.filter((p) => filter === "All" || p.cat === filter);
+function Portfolio({
+  num,
+  label,
+  items: cmsItems,
+}: {
+  num: string;
+  label: string;
+  items: PortfolioItem[];
+}) {
+  const [filter, setFilter] = useState("All");
+  const t = useEditor();
+  const cats = Array.from(
+    new Set(cmsItems.flatMap((i) => i.categories?.length ? i.categories : [i.category])),
+  );
+  const filters = ["All", ...cats];
+  const items = cmsItems.filter(
+    (i) => filter === "All" || i.categories?.includes(filter) || i.category === filter,
+  );
   const [active, setActive] = useState<PortfolioItem | null>(null);
 
   return (
@@ -452,55 +431,47 @@ function Portfolio({ num, label }: { num: string; label: string }) {
       <div className="mx-auto max-w-[1400px]">
         <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
           <div>
-            <SectionLabel num={num} label={label} />
+            <SectionLabel num={num} k="section_work_label" fallback={label} />
             <h2 className="mt-6 max-w-2xl whitespace-pre-line font-display text-5xl leading-[1] tracking-tight md:text-7xl">
-              {workHeading}
+              <T k="work_heading">A vault of quiet obsession.</T>
             </h2>
           </div>
         </div>
 
-        <div className="mt-12 flex flex-wrap gap-2 md:gap-3">
-          {filters.map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`rounded-full border px-4 py-2 text-[11px] uppercase tracking-[0.25em] transition ${
-                filter === f
-                  ? "border-gold bg-gold text-ink"
-                  : "border-border text-foreground/60 hover:border-gold/60 hover:text-gold"
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
+        {filters.length > 2 && (
+          <div className="mt-12 flex flex-wrap gap-2 md:gap-3">
+            {filters.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`rounded-full border px-4 py-2 text-[11px] uppercase tracking-[0.25em] transition ${
+                  filter === f
+                    ? "border-gold bg-gold text-ink"
+                    : "border-border text-foreground/60 hover:border-gold/60 hover:text-gold"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {items.map((p, i) => (
+          {items.map((i) => (
             <figure
-              key={`${p.title}-${i}`}
-              onClick={() => p.item && setActive(p.item)}
+              key={i.id}
+              onClick={() => setActive(i)}
               className="hover-glow group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-sm bg-background"
             >
-              {p.item ? (
-                <PortfolioPreview item={p.item} />
-              ) : (
-                <img
-                  src={p.img}
-                  alt={p.title}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                />
-              )}
+              <PortfolioPreview item={i} />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent opacity-90 transition-opacity duration-500" />
               <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between p-6">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-gold">
-                    {p.cat}
+                    {i.categories?.[0] ?? i.category}
                   </p>
                   <h3 className="mt-2 font-display text-2xl tracking-tight text-white">
-                    {p.title}
+                    {i.title || "Untitled"}
                   </h3>
                 </div>
                 <span className="font-mono text-xs text-gold opacity-0 transition group-hover:opacity-100">
@@ -510,6 +481,11 @@ function Portfolio({ num, label }: { num: string; label: string }) {
             </figure>
           ))}
         </div>
+        {cmsItems.length === 0 && (
+          <p className="mt-10 text-sm text-foreground/50">
+            No published work yet — add pieces in the admin panel.
+          </p>
+        )}
       </div>
 
       {active && (
@@ -522,10 +498,19 @@ function Portfolio({ num, label }: { num: string; label: string }) {
             <div className="flex items-start justify-between gap-6">
               <div>
                 <h3 className="font-display text-2xl text-white">{active.title}</h3>
-                {active.description && <p className="mt-1 max-w-xl text-sm text-white/60">{active.description}</p>}
-                {active.client && <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.3em] text-gold">{active.client}</p>}
+                {active.description && (
+                  <p className="mt-1 max-w-xl text-sm text-white/60">{active.description}</p>
+                )}
+                {active.client && (
+                  <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.3em] text-gold">
+                    {active.client}
+                  </p>
+                )}
               </div>
-              <button onClick={() => setActive(null)} className="rounded-full border border-white/30 px-4 py-2 text-xs uppercase tracking-[0.25em] text-white">
+              <button
+                onClick={() => setActive(null)}
+                className="rounded-full border border-white/30 px-4 py-2 text-xs uppercase tracking-[0.25em] text-white"
+              >
                 Close
               </button>
             </div>
@@ -536,80 +521,63 @@ function Portfolio({ num, label }: { num: string; label: string }) {
   );
 }
 
+/* ------------------------------------------------------------ before/after */
 
 function BeforeAfter({ num, label }: { num: string; label: string }) {
-  const t = useSiteContent();
-  const afterSrc = t("after_image_url", workRetouchAfter);
-  const beforeSrc = t("before_image_url", workRetouchBefore);
+  const t = useEditor();
+  const afterSrc = t.get("after_image_url", workRetouchAfter);
+  const beforeSrc = t.get("before_image_url", workRetouchBefore);
   const [pos, setPos] = useState(50);
-  const wrap = useRef<HTMLDivElement>(null);
-  const activePointer = useRef<number | null>(null);
+  const [drag, setDrag] = useState(false);
 
-  const update = (clientX: number) => {
-    if (!wrap.current) return;
-    const r = wrap.current.getBoundingClientRect();
-    const p = ((clientX - r.left) / r.width) * 100;
-    setPos(Math.max(0, Math.min(100, p)));
-  };
-
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    activePointer.current = e.pointerId;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    update(e.clientX);
-  };
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (activePointer.current !== e.pointerId) return;
-    e.preventDefault();
-    update(e.clientX);
-  };
-  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (activePointer.current !== e.pointerId) return;
-    activePointer.current = null;
-    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "ArrowLeft") setPos((p) => Math.max(0, p - 4));
-    if (e.key === "ArrowRight") setPos((p) => Math.min(100, p + 4));
+  const move = (clientX: number, el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    setPos(Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100)));
   };
 
   return (
     <section className="relative bg-background px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <SectionLabel num={num} label={label} />
+        <SectionLabel num={num} k="section_before_after_label" fallback={label} />
         <div className="mt-6 grid gap-10 md:grid-cols-[1fr_1fr] md:items-end">
           <h2 className="whitespace-pre-line font-display text-5xl leading-[1] tracking-tight md:text-7xl">
-            {t("before_after_heading", "Retouching, undone.")}
+            <T k="before_after_heading">Retouching, undone.</T>
           </h2>
-          <p className="max-w-md whitespace-pre-line text-sm leading-relaxed text-foreground/60">
-            {t(
-              "before_after_desc",
-              "Drag the slider — or tap anywhere on the image — to compare an untouched capture with a Black Pixal high-end retouch. Skin texture is preserved, never plasticised.",
-            )}
-          </p>
+          <T
+            k="before_after_desc"
+            as="p"
+            className="max-w-md whitespace-pre-line text-sm leading-relaxed text-foreground/60"
+          >
+            Drag the slider — or tap anywhere on the image — to compare an untouched capture
+            with a Black Pixal high-end retouch. Skin texture is preserved, never plasticised.
+          </T>
         </div>
 
         <div
-          ref={wrap}
           role="slider"
           tabIndex={0}
           aria-label="Before and after comparison"
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(pos)}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-          onKeyDown={onKeyDown}
-          className="ring-gold relative mt-12 aspect-[4/5] max-h-[80vh] w-full cursor-ew-resize touch-none select-none overflow-hidden rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-gold md:aspect-[16/9]"
-          style={{ WebkitUserSelect: "none" }}
+          onPointerDown={(e) => {
+            setDrag(true);
+            e.currentTarget.setPointerCapture(e.pointerId);
+            move(e.clientX, e.currentTarget);
+          }}
+          onPointerMove={(e) => drag && move(e.clientX, e.currentTarget)}
+          onPointerUp={() => setDrag(false)}
+          onPointerCancel={() => setDrag(false)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft") setPos((p) => Math.max(0, p - 4));
+            if (e.key === "ArrowRight") setPos((p) => Math.min(100, p + 4));
+          }}
+          className="relative mt-12 aspect-[4/5] max-h-[80vh] w-full cursor-ew-resize touch-none select-none overflow-hidden rounded-sm outline-none ring-gold focus-visible:ring-2 focus-visible:ring-gold md:aspect-[16/9]"
         >
           <img
             src={afterSrc}
             alt="After retouching"
             loading="lazy"
-            decoding="async"
             draggable={false}
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
@@ -621,27 +589,22 @@ function BeforeAfter({ num, label }: { num: string; label: string }) {
               src={beforeSrc}
               alt="Before retouching"
               loading="lazy"
-              decoding="async"
               draggable={false}
               className="absolute inset-0 h-full w-full object-cover"
             />
           </div>
-
-          {/* Labels */}
           <span className="pointer-events-none absolute left-4 top-4 rounded-full border border-white/40 bg-black/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-white backdrop-blur">
             Before
           </span>
           <span className="pointer-events-none absolute right-4 top-4 rounded-full border border-gold/60 bg-black/50 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.3em] text-gold backdrop-blur">
             After
           </span>
-
-          {/* Divider */}
           <div
-            className="pointer-events-none absolute inset-y-0 will-change-transform"
+            className="pointer-events-none absolute inset-y-0"
             style={{ left: `${pos}%`, transform: "translateX(-50%)" }}
           >
             <div className="h-full w-px bg-gold shadow-[0_0_20px_var(--glow-color)]" />
-            <div className="absolute top-1/2 left-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-gold bg-black/70 backdrop-blur transition-transform duration-200 group-active:scale-95">
+            <div className="absolute left-1/2 top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-gold bg-black/70 backdrop-blur">
               <span className="font-mono text-xs text-gold">⇆</span>
             </div>
           </div>
@@ -651,58 +614,90 @@ function BeforeAfter({ num, label }: { num: string; label: string }) {
   );
 }
 
-function AiVideoShowcase({ num, label }: { num: string; label: string }) {
+/* ------------------------------------------------------------------ films */
+
+function Films({ num, label }: { num: string; label: string }) {
+  const films = useEditableList<{ title: string; duration: string; img: string }>(
+    "films_json",
+    [
+      { title: "Midnight Drive", duration: "00:48", img: workAiVideo },
+      { title: "Lobby Hour", duration: "01:12", img: workColor },
+      { title: "Onyx Ritual", duration: "00:32", img: workSocial },
+    ],
+    { title: "New film", duration: "00:30", img: workAiVideo },
+  );
   const [active, setActive] = useState<number | null>(null);
-  const t = useSiteContent();
-  const films = useSiteList<{ title: string; duration: string; img: string }>("films_json", [
-    { title: "Midnight Drive", duration: "00:48", img: workAiVideo },
-    { title: "Lobby Hour", duration: "01:12", img: workColor },
-    { title: "Onyx Ritual", duration: "00:32", img: workSocial },
-  ]);
+  const { editing, upload } = useEditor();
+
   return (
     <section id="films" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <SectionLabel num={num} label={label} />
+        <SectionLabel num={num} k="section_films_label" fallback={label} />
         <h2 className="mt-6 max-w-3xl whitespace-pre-line font-display text-5xl leading-[1] tracking-tight md:text-7xl">
-          {t("films_heading", "Director-led AI films.")}
+          <T k="films_heading">Director-led AI films.</T>
         </h2>
-
         <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {films.map((f, i) => (
-            <button
-              key={f.title}
-              onClick={() => setActive(i)}
-              className="hover-glow group relative aspect-[3/4] overflow-hidden rounded-sm text-left"
+          {films.items.map((f, i) => (
+            <div
+              key={i}
+              className="hover-glow group relative aspect-[3/4] overflow-hidden rounded-sm"
+              onClick={() => !editing && setActive(i)}
             >
               <img
                 src={f.img}
                 alt={f.title}
                 loading="lazy"
-                decoding="async"
                 className="h-full w-full object-cover transition-transform duration-[1500ms] ease-out group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-black/40 transition group-hover:bg-black/20" />
-              <div className="absolute inset-0 grid place-items-center">
+              {editing && (
+                <>
+                  <label className="absolute inset-0 z-30 grid cursor-pointer place-items-center bg-black/50 font-mono text-[10px] uppercase tracking-[0.25em] text-gold">
+                    Replace poster
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) films.patch(i, "img", await upload(file));
+                      }}
+                    />
+                  </label>
+                  <ItemControls
+                    onUp={() => films.move(i, -1)}
+                    onDown={() => films.move(i, 1)}
+                    onRemove={() => films.remove(i)}
+                  />
+                </>
+              )}
+              <div className={`${editing ? "hidden" : ""} absolute inset-0 grid place-items-center`}>
                 <span className="grid h-20 w-20 place-items-center rounded-full border border-gold/70 bg-black/40 backdrop-blur transition group-hover:scale-110">
                   <span className="ml-1 block h-0 w-0 border-y-8 border-l-[12px] border-y-transparent border-l-gold" />
                 </span>
               </div>
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6">
-                <h3 className="font-display text-2xl tracking-tight text-white">
-                  {f.title}
-                </h3>
+                {editing ? (
+                  <input
+                    value={f.title}
+                    onChange={(e) => films.patch(i, "title", e.target.value)}
+                    className="w-32 rounded border border-gold/50 bg-black/70 px-2 py-1 text-white"
+                  />
+                ) : (
+                  <h3 className="font-display text-2xl tracking-tight text-white">{f.title}</h3>
+                )}
                 <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-gold">
                   {f.duration}
                 </span>
               </div>
-            </button>
+            </div>
           ))}
         </div>
+        {films.editing && <div className="mt-6"><AddItem label="film" onClick={films.add} /></div>}
       </div>
 
-      {active !== null && (
+      {active !== null && films.items[active] && (
         <div
-          className="fixed inset-0 z-[60] grid place-items-center bg-black/90 p-6 backdrop-blur-md animate-[fadeIn_0.3s_ease]"
+          className="fixed inset-0 z-[60] grid place-items-center bg-black/90 p-6 backdrop-blur-md"
           onClick={() => setActive(null)}
         >
           <div
@@ -711,20 +706,13 @@ function AiVideoShowcase({ num, label }: { num: string; label: string }) {
           >
             <div className="aspect-video w-full">
               <img
-                src={films[active].img}
-                alt={films[active].title}
+                src={films.items[active].img}
+                alt={films.items[active].title}
                 className="h-full w-full object-cover"
               />
             </div>
             <div className="flex items-center justify-between p-6">
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-gold">
-                  Preview
-                </p>
-                <h3 className="mt-1 font-display text-2xl text-white">
-                  {films[active].title}
-                </h3>
-              </div>
+              <h3 className="font-display text-2xl text-white">{films.items[active].title}</h3>
               <button
                 onClick={() => setActive(null)}
                 className="rounded-full border border-gold/60 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.25em] text-gold hover:bg-gold hover:text-ink"
@@ -733,45 +721,87 @@ function AiVideoShowcase({ num, label }: { num: string; label: string }) {
               </button>
             </div>
           </div>
-          <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
         </div>
       )}
     </section>
   );
 }
 
+/* ----------------------------------------------------------- testimonials */
+
+const TESTIMONIALS_FALLBACK = [
+  { quote: "Black Pixal turned our launch into a film. The restraint, the gold, the silence between frames — it sold the brand on its own.", name: "Amara V.", role: "Founder, Maison Noir" },
+  { quote: "The only studio I've worked with that treats AI like a camera, not a gimmick.", name: "Devon K.", role: "Creative Director, Aurum" },
+  { quote: "Retouching at a level I've only seen on Italian Vogue. Quietly perfect.", name: "Priya R.", role: "Photographer" },
+  { quote: "They redesigned our identity in three weeks and our investor decks landed differently.", name: "Marcus L.", role: "CEO, Onyx Capital" },
+  { quote: "Editorial taste, technical precision, zero ego. Rare combination.", name: "Sora T.", role: "Art Director" },
+];
+
 function Testimonials({ num, label }: { num: string; label: string }) {
-  const t2 = useSiteContent();
-  const list = useSiteList<{ quote: string; name: string; role: string }>(
+  const items = useEditableList<{ quote: string; name: string; role: string }>(
     "testimonials_json",
-    testimonials,
+    TESTIMONIALS_FALLBACK,
+    { quote: "New quote…", name: "Name", role: "Role" },
   );
-  const row = [...list, ...list];
+  const row = [...items.items, ...items.items];
   return (
     <section className="relative bg-background px-0 py-28 md:py-40">
       <div className="mx-auto max-w-[1400px] px-6 md:px-12">
-        <SectionLabel num={num} label={label} />
+        <SectionLabel num={num} k="section_testimonials_label" fallback={label} />
         <h2 className="mt-6 max-w-3xl whitespace-pre-line font-display text-5xl leading-[1] tracking-tight md:text-7xl">
-          {t2("testimonials_heading", "What our clients say.")}
+          <T k="testimonials_heading">What our clients say.</T>
         </h2>
+        {items.editing && <div className="mt-4"><AddItem label="testimonial" onClick={items.add} /></div>}
       </div>
-
       <div className="mt-16 overflow-hidden">
-        <div className="marquee flex gap-6 px-6">
-          {row.map((t, i) => (
+        <div className={`marquee flex gap-6 px-6 ${items.editing ? "!overflow-x-auto" : ""}`}>
+          {(items.editing ? items.items : row).map((t, i) => (
             <article
               key={i}
-              className="w-[340px] shrink-0 rounded-sm border border-border/60 bg-white/[0.03] p-8 md:w-[420px]"
+              className="relative w-[340px] shrink-0 rounded-sm border border-border/60 bg-white/[0.03] p-8 md:w-[420px]"
             >
+              {items.editing && (
+                <ItemControls
+                  onUp={() => items.move(i, -1)}
+                  onDown={() => items.move(i, 1)}
+                  onRemove={() => items.remove(i)}
+                />
+              )}
               <span className="font-display text-5xl leading-none text-gold">"</span>
               <p className="mt-2 font-display text-xl italic leading-snug text-foreground/90">
-                {t.quote}
+                {items.editing ? (
+                  <textarea
+                    rows={4}
+                    value={t.quote}
+                    onChange={(e) => items.patch(i, "quote", e.target.value)}
+                    className="w-full rounded border border-gold/50 bg-black/60 px-2 py-1 text-sm"
+                  />
+                ) : (
+                  t.quote
+                )}
               </p>
               <div className="mt-6 border-t border-border/60 pt-4">
-                <p className="text-sm text-foreground">{t.name}</p>
-                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/50">
-                  {t.role}
-                </p>
+                {items.editing ? (
+                  <div className="flex gap-2">
+                    <input
+                      value={t.name}
+                      onChange={(e) => items.patch(i, "name", e.target.value)}
+                      className="w-1/2 rounded border border-gold/50 bg-black/60 px-2 py-1 text-xs"
+                    />
+                    <input
+                      value={t.role}
+                      onChange={(e) => items.patch(i, "role", e.target.value)}
+                      className="w-1/2 rounded border border-gold/50 bg-black/60 px-2 py-1 text-xs"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-foreground">{t.name}</p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-foreground/50">
+                      {t.role}
+                    </p>
+                  </>
+                )}
               </div>
             </article>
           ))}
@@ -781,82 +811,121 @@ function Testimonials({ num, label }: { num: string; label: string }) {
   );
 }
 
+/* ---------------------------------------------------------------- contact */
+
 function Contact({ num, label }: { num: string; label: string }) {
-  const t = useSiteContent();
-  const cards = useSiteList<{ label: string; value: string; href: string }>("contacts_json", [
-    { label: "WhatsApp", value: "+91 98406 60671", href: "https://wa.me/919840660671" },
-    { label: "Instagram", value: "@blackpixalstudio", href: "https://instagram.com/blackpixalstudio" },
-    { label: "Email", value: "blackpixalstudio@gmail.com", href: "mailto:blackpixalstudio@gmail.com" },
-  ]);
+  const items = useEditableList<{ label: string; value: string; href: string }>(
+    "contacts_json",
+    [
+      { label: "WhatsApp", value: "+91 98406 60671", href: "https://wa.me/919840660671" },
+      { label: "Instagram", value: "@blackpixalstudio", href: "https://instagram.com/blackpixalstudio" },
+      { label: "Email", value: "blackpixalstudio@gmail.com", href: "mailto:blackpixalstudio@gmail.com" },
+    ],
+    { label: "Label", value: "Value", href: "#" },
+  );
+  const t = useEditor();
   return (
     <section id="contact" className="relative bg-ink px-6 py-28 md:px-12 md:py-40">
       <div className="mx-auto max-w-[1400px]">
-        <SectionLabel num={num} label={label} />
+        <SectionLabel num={num} k="section_contact_label" fallback={label} />
         <h2 className="mt-6 max-w-4xl whitespace-pre-line font-display text-6xl leading-[0.95] tracking-tight md:text-[9vw]">
-          {t("contact_heading", "Let's make something")}
+          <T k="contact_heading">Let's make something</T>
           <br />
-          <em className="gold-text gold-glow">{t("contact_heading_accent", "unforgettable.")}</em>
+          <em className="gold-text gold-glow">
+            <T k="contact_heading_accent">unforgettable.</T>
+          </em>
         </h2>
 
         <div className="mt-16 grid gap-12 md:grid-cols-[1fr_auto] md:items-end">
           <div className="grid gap-6 sm:grid-cols-3">
-            {cards.map((c, i) => (
-              <ContactCard key={c.label + i} label={c.label} value={c.value} href={c.href} />
+            {items.items.map((c, i) => (
+              <div key={i} className="relative">
+                {items.editing && (
+                  <ItemControls
+                    onUp={() => items.move(i, -1)}
+                    onDown={() => items.move(i, 1)}
+                    onRemove={() => items.remove(i)}
+                  />
+                )}
+                {items.editing ? (
+                  <div className="space-y-2 rounded-sm border border-gold/40 bg-black/40 p-4">
+                    {(["label", "value", "href"] as const).map((f) => (
+                      <input
+                        key={f}
+                        value={c[f]}
+                        placeholder={f}
+                        onChange={(e) => items.patch(i, f, e.target.value)}
+                        className="w-full rounded border border-gold/50 bg-black/60 px-2 py-1 text-xs"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <a
+                    href={c.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover-glow group block rounded-sm border border-border/60 bg-background p-6"
+                  >
+                    <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-gold/70">
+                      {c.label}
+                    </p>
+                    <p className="mt-3 break-words font-display text-2xl text-foreground transition group-hover:text-gold">
+                      {c.value}
+                    </p>
+                  </a>
+                )}
+              </div>
             ))}
           </div>
 
           <a
-            href={t("contact_cta_href", "mailto:blackpixalstudio@gmail.com?subject=Project%20Quote")}
+            href={t.get("contact_cta_href", "mailto:blackpixalstudio@gmail.com?subject=Project%20Quote")}
             className="group relative inline-flex items-center justify-center gap-3 self-start overflow-hidden rounded-full bg-gold px-10 py-5 font-mono text-[11px] uppercase tracking-[0.3em] text-ink transition hover:scale-[1.02]"
           >
-            <span className="relative z-10">{t("contact_cta_label", "Get Quote")}</span>
+            <span className="relative z-10">
+              <T k="contact_cta_label">Get Quote</T>
+            </span>
             <span className="relative z-10">→</span>
-            <span className="absolute inset-0 bg-gradient-to-r from-gold-soft via-gold to-gold-deep opacity-0 transition group-hover:opacity-100" />
           </a>
         </div>
+        {items.editing && <div className="mt-6"><AddItem label="contact card" onClick={items.add} /></div>}
       </div>
     </section>
   );
 }
 
-function ContactCard({ label, value, href }: { label: string; value: string; href: string }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="hover-glow group block rounded-sm border border-border/60 bg-background p-6"
-    >
-      <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-gold/70">
-        {label}
-      </p>
-      <p className="mt-3 break-words font-display text-2xl text-foreground transition group-hover:text-gold">
-        {value}
-      </p>
-    </a>
-  );
-}
+/* ----------------------------------------------------------------- footer */
 
 function Footer() {
-  const t = useSiteContent();
   return (
     <footer className="border-t border-border/60 px-6 py-10 md:px-12">
       <div className="mx-auto flex max-w-[1400px] flex-col gap-4 text-[11px] uppercase tracking-[0.3em] text-foreground/50 md:flex-row md:items-center md:justify-between">
         <p>
-          © {new Date().getFullYear()} {t("footer_left", "Black Pixal — All rights reserved")}
+          © {new Date().getFullYear()}{" "}
+          <T k="footer_left">Black Pixal — All rights reserved</T>
         </p>
-        <p className="font-mono">{t("footer_right", "Crafted in black & gold")}</p>
+        <p className="font-mono">
+          <T k="footer_right">Crafted in black & gold</T>
+        </p>
       </div>
     </footer>
   );
 }
 
-function SectionLabel({ num, label }: { num: string; label: string }) {
+function SectionLabel({
+  num,
+  k,
+  fallback,
+}: {
+  num: string;
+  k: string;
+  fallback: string;
+}) {
   return (
     <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.4em] text-gold/80">
       <span>{num}</span>
       <span className="h-px w-12 bg-gold/50" />
-      <span>{label}</span>
+      <T k={k}>{fallback}</T>
     </div>
   );
 }
