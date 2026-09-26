@@ -407,3 +407,17 @@
     }
   }
 }
+
+/* Visual editor affordance */
+.lv-editable {
+  outline: 1px dashed color-mix(in oklab, var(--gold, gold) 60%, transparent);
+  outline-offset: 4px;
+  border-radius: 2px;
+  cursor: text;
+  transition: outline-color 0.2s ease, background-color 0.2s ease;
+}
+.lv-editable:hover,
+.lv-editable:focus {
+  outline-style: solid;
+  background-color: rgb(255 255 255 / 4%);
+}
